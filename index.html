@@ -1,358 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Longitudinal Flow Matching (AISTATS 2026 Spotlight)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <meta charset="utf-8">
+  <meta name="description" content="Longitudinal Flow Matching project page">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Longitudinal Flow Matching for Trajectory Modeling</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/bulma-carousel.min.js"></script>
+  <script defer src="./static/js/bulma-slider.min.js"></script>
   <style>
-    :root {
-      --bg: #f8f7f4;
-      --paper: #fffef9;
-      --text: #1f2228;
-      --muted: #565d69;
-      --line: #d7dbe3;
-      --accent: #1e3a8a;
-      --maxw: 980px;
-      --radius: 16px;
-      --pdf-max-height: 1050px;
-      --pdf-hero-max-height: 1220px;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-
-    body {
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-    }
-
-    .wrap {
-      width: min(var(--maxw), calc(100% - 2rem));
-      margin: 0 auto;
-    }
-
-    .hero {
-      padding: 4.2rem 0 2.4rem;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, #f1f5ff 0%, #f8f7f4 100%);
-    }
-
-    .eyebrow {
-      font-size: 0.82rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #334155;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    h1 {
-      margin: 0.6rem 0 0;
-      font-size: clamp(1.8rem, 4vw, 3rem);
-      line-height: 1.2;
-    }
-
-    .lead {
-      margin: 1rem 0 0;
-      font-size: clamp(1.02rem, 1.8vw, 1.24rem);
-      color: #2f3640;
-      max-width: 840px;
-    }
-
-    .authors {
-      margin: 1rem 0 0;
-      color: #3f4752;
-      font-size: 0.97rem;
-    }
-
-    .quick-links {
-      margin-top: 1.25rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-    }
-
-    .quick-links a {
-      text-decoration: none;
-      color: #111827;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 999px;
-      padding: 0.48rem 0.9rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    main {
-      padding: 1.75rem 0 3rem;
-    }
-
-    section {
-      margin-top: 1.1rem;
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 1.35rem;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: clamp(1.2rem, 2.1vw, 1.7rem);
-      line-height: 1.3;
-    }
-
-    p { margin: 0.7rem 0 0; }
-
-    .note {
-      margin-top: 0.8rem;
-      padding: 0.75rem 0.85rem;
-      border-left: 4px solid var(--accent);
-      background: #eef3ff;
-      border-radius: 8px;
-      color: #22324f;
-      font-weight: 500;
-    }
-
-    .media-block {
-      margin-top: 1rem;
-      border: 1px solid var(--line);
-      border-radius: 12px;
+    .figure-card {
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
       overflow: hidden;
       background: #fff;
+      margin-bottom: 1rem;
     }
-
-    .media-block img,
-    .media-block video,
-    .media-block object {
+    .figure-card img,
+    .figure-card video {
+      display: block;
       width: 100%;
-      display: block;
-      background: #f2f4f7;
+      height: auto;
+      background: #fafafa;
     }
-
-    .media-block object {
-      height: min(78vw, var(--pdf-max-height));
-      border: 0;
+    .figure-caption {
+      padding: 0.85rem 1rem;
+      border-top: 1px solid #ededed;
+      font-size: 0.95rem;
     }
-
-    .media-caption {
-      padding: 0.78rem 0.9rem 0.9rem;
-      border-top: 1px solid var(--line);
-      background: #fff;
-    }
-
-    .media-caption strong {
-      display: block;
-      font-size: 0.96rem;
-    }
-
-    .media-caption span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 0.22rem;
-    }
-
-    .figure-hero {
-      margin-top: 1rem;
-      border: 1px solid #b8c3df;
-      border-radius: 14px;
-      background: #f5f8ff;
-      overflow: hidden;
-    }
-
-    .figure-hero object {
-      width: 100%;
-      height: min(86vw, var(--pdf-hero-max-height));
-      display: block;
-      border: 0;
-      background: #fff;
-    }
-
-    .fallback-text {
-      padding: 1rem;
-      margin: 0;
-    }
-
-    .figure-hero .media-caption {
-      border-top-color: #c8d3eb;
-      background: #f5f8ff;
-    }
-
-    ul {
-      margin: 0.75rem 0 0;
-      padding-left: 1.2rem;
-    }
-
-    li { margin: 0.35rem 0; }
-
-    footer {
-      margin-top: 1.35rem;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.88rem;
+    .section-tight {
+      padding-top: 1.8rem;
       padding-bottom: 1.8rem;
+    }
+    .results-table {
+      width: 100%;
+      font-size: 0.95rem;
+    }
+    .results-table th,
+    .results-table td {
+      border: 1px solid #e8e8e8;
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
     }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <p class="eyebrow">AISTATS 2026 · Spotlight</p>
-      <h1>Longitudinal Flow Matching for Trajectory Modeling</h1>
-      <p class="lead">
-        We start with a practical question: when patient data arrives sparsely over time, can we still learn a reliable story of how disease unfolds? Longitudinal Flow Matching is our answer.
-      </p>
-      <p class="authors">
-        Mohammad Mohaiminul Islam · Thijs P. Kuipers · Sharvaree Vadgama · Coen de Vente · Afsana Khan · Clara I. Sánchez · Erik J. Bekkers
-      </p>
-      <div class="quick-links">
-        <a href="paper/Longitudinal_Flow_Matching.pdf">Paper (PDF)</a>
-        <a href="#figure1">Figure 1</a>
-        <a href="#journey">Method Journey</a>
-        <a href="#videos">Simulation Videos</a>
-        <a href="#results">Results</a>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">Longitudinal Flow Matching for Trajectory Modeling</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Mohammad Mohaiminul Islam,</span>
+            <span class="author-block">Thijs P. Kuipers,</span>
+            <span class="author-block">Sharvaree Vadgama,</span>
+            <span class="author-block">Coen de Vente,</span>
+            <span class="author-block">Afsana Khan,</span>
+            <span class="author-block">Clara I. Sánchez,</span>
+            <span class="author-block">Erik J. Bekkers</span>
+          </div>
+          <div class="publication-links">
+            <span class="link-block">
+              <a href="./paper/Longitudinal_Flow_Matching.pdf" class="external-link button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                <span>Paper</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="https://github.com/niazoys/longitudinal-flow-matching" class="external-link button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fab fa-github"></i></span>
+                <span>Code</span>
+              </a>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
+</section>
 
-  <main class="wrap">
-    <section id="journey">
-      <h2>The story in one paragraph</h2>
-      <p>
-        Longitudinal data is messy: scans are irregular, trajectories are incomplete, and uncertainty is real. Instead of stitching together only pairwise transitions, IMMFM learns a continuous trajectory that stays consistent with all available time points. A smooth piecewise-quadratic path captures trend, while a learned diffusion term captures uncertainty. Together, they produce trajectories that are both plausible and clinically useful.
-      </p>
-      <div class="note">
-        Core idea: separate smooth progression from stochastic variation, then learn both jointly.
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Simulation first: generated trajectories</h2>
+    <p class="content">The simulation examples are shown first to highlight what the model actually generates in synthetic and real longitudinal settings.</p>
+    <div class="columns is-multiline">
+      <div class="column is-half">
+        <div class="figure-card">
+          <video controls muted loop playsinline preload="metadata" aria-label="Starmen hand-down simulation showing class-consistent conditional trajectory generation">
+            <source src="./simulation/starmen/hand_going_down/sample_1.mp4" type="video/mp4">
+          </video>
+          <div class="figure-caption"><strong>Starmen (hand-down)</strong> — class-consistent conditional trajectory generation.</div>
+        </div>
       </div>
-    </section>
+      <div class="column is-half">
+        <div class="figure-card">
+          <video controls muted loop playsinline preload="metadata" aria-label="Starmen hand-up simulation showing motion-class behavior from conditioning">
+            <source src="./simulation/starmen/hand_going_up/sample_1.mp4" type="video/mp4">
+          </video>
+          <div class="figure-caption"><strong>Starmen (hand-up)</strong> — motion class follows previous-frame conditioning.</div>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="figure-card">
+          <video controls muted loop playsinline preload="metadata" aria-label="ADNI subject 417 simulation showing long-range trajectory forecast from sparse visits">
+            <source src="./simulation/Adni/sample_417_trajectory.mp4" type="video/mp4">
+          </video>
+          <div class="figure-caption"><strong>ADNI subject 417</strong> — long-range forecast from sparse visits.</div>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="figure-card">
+          <video controls muted loop playsinline preload="metadata" aria-label="ADNI subject 451 simulation showing stable autoregressive progression">
+            <source src="./simulation/Adni/sample_451_trajectory.mp4" type="video/mp4">
+          </video>
+          <div class="figure-caption"><strong>ADNI subject 451</strong> — stable autoregressive progression.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <section id="figure1">
-      <h2>Figure 1 · The central idea (full-width highlight)</h2>
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Abstract</h2>
+    <div class="content">
       <p>
-        This is the key figure of the project. It introduces the problem setting and how IMMFM connects sparse observations, interpolation, and stochastic trajectory modeling in one coherent framework.
+        Generative models for sequential data often struggle with sparsely sampled and high-dimensional trajectories, typically reducing the learning problem to pairwise transitions.
+        We propose <strong>Interpolative Multi-Marginal Flow Matching (IMMFM)</strong>, which learns continuous stochastic dynamics jointly consistent with multiple observed time points.
+        IMMFM uses a piecewise-quadratic interpolation path as a smooth target for flow matching and jointly optimizes drift with a data-driven diffusion coefficient, supported by a theoretical condition for stable learning.
+        Across synthetic and real longitudinal neuroimaging benchmarks, IMMFM improves forecasting quality and downstream clinical utility.
       </p>
-      <article class="figure-hero">
-        <object data="figures/fig1.pdf#view=FitH" type="application/pdf" aria-label="Full IMMFM overview pipeline from sparse observations to interpolation path, drift-diffusion learning, and trajectory forecasting outcomes.">
-          <p class="fallback-text">Figure 1 overview preview unavailable. <a href="figures/fig1.pdf">Open Figure 1 PDF</a>.</p>
-        </object>
-        <div class="media-caption">
-          <strong>Figure 1 · Problem and model overview</strong>
-          <span>Sparse longitudinal observations, uncertainty handling, and IMMFM components in one full-width view.</span>
-        </div>
-      </article>
-    </section>
+    </div>
+    <div class="figure-card">
+      <img src="./figures/fig1.png" alt="Figure 1: IMMFM pipeline with sparse observations and trajectory forecasting">
+      <div class="figure-caption"><strong>Figure 1.</strong> IMMFM overview: sparse observations, uncertainty-aware stochastic dynamics, and trajectory forecasting pipeline.</div>
+    </div>
+  </div>
+</section>
 
-    <section id="videos">
-      <h2>What the generated trajectories look like</h2>
-      <p>
-        Before diving into more plots, it helps to watch the model. The examples below show subject-specific trajectory behavior on synthetic motion and ADNI brain progression.
-      </p>
-
-      <article class="media-block">
-        <video controls muted loop playsinline preload="metadata">
-          <source src="simulation/starmen/hand_going_down/sample_1.mp4" type="video/mp4" />
-        </video>
-        <div class="media-caption">
-          <strong>Starmen · Hand-going-down</strong>
-          <span>Conditioned generation tracks the expected motion direction.</span>
-        </div>
-      </article>
-
-      <article class="media-block">
-        <video controls muted loop playsinline preload="metadata">
-          <source src="simulation/starmen/hand_going_up/sample_1.mp4" type="video/mp4" />
-        </video>
-        <div class="media-caption">
-          <strong>Starmen · Hand-going-up</strong>
-          <span>The learned dynamics preserve class-specific temporal behavior.</span>
-        </div>
-      </article>
-
-      <article class="media-block">
-        <video controls muted loop playsinline preload="metadata">
-          <source src="simulation/Adni/sample_417_trajectory.mp4" type="video/mp4" />
-        </video>
-        <div class="media-caption">
-          <strong>ADNI · Subject 417</strong>
-          <span>A plausible long-range trajectory from sparse clinical observations.</span>
-        </div>
-      </article>
-
-      <article class="media-block">
-        <video controls muted loop playsinline preload="metadata">
-          <source src="simulation/Adni/sample_451_trajectory.mp4" type="video/mp4" />
-        </video>
-        <div class="media-caption">
-          <strong>ADNI · Subject 451</strong>
-          <span>Forecast behavior remains stable over longer horizons.</span>
-        </div>
-      </article>
-    </section>
-
-    <section id="results">
-      <h2>From mechanism to evidence</h2>
-      <p>
-        Once the modeling story is clear, the remaining figures show why the method works in practice: better trajectory recovery, strong qualitative forecasts, and more clinically meaningful downstream signals.
-      </p>
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Methodology</h2>
+    <div class="content">
       <ul>
-        <li>Multi-marginal path design avoids abrupt segment transitions.</li>
-        <li>Joint drift + diffusion learning captures uncertainty instead of ignoring it.</li>
-        <li>Forecasted trajectories improve downstream AD-vs-CN classification over time.</li>
+        <li><strong>Multi-marginal objective:</strong> IMMFM learns trajectories jointly across multiple time points instead of chaining independent pairwise transports.</li>
+        <li><strong>Piecewise-quadratic path:</strong> A smooth conditional Gaussian path reduces velocity discontinuities from simple linear interpolation.</li>
+        <li><strong>Drift + score + diffusion:</strong> The model jointly learns probability-flow drift, score, and a learned diffusion coefficient tied to predictive uncertainty.</li>
+        <li><strong>Theory:</strong> The paper proves a gradient-equivalence condition showing uncertainty learning does not bias the core drift/score optimization at stationary points.</li>
       </ul>
+    </div>
+    <div class="figure-card">
+      <img src="./figures/fig2.png" alt="Figure 2: IMMFM tracking on S-shaped and sigma-shaped synthetic trajectories">
+      <div class="figure-caption"><strong>Figure 2.</strong> On S-shaped and σ-shaped synthetic trajectories, IMMFM better tracks curved and crossing dynamics than prior flow-matching baselines.</div>
+    </div>
+  </div>
+</section>
 
-      <article class="media-block">
-        <object data="figures/fig2.pdf#view=FitH" type="application/pdf" aria-label="Comparison of synthetic trajectory recovery, including S-shaped and sigma-shaped dynamics, where IMMFM tracks curvature and crossing structures more accurately.">
-          <p class="fallback-text">Figure 2 trajectory recovery preview unavailable. <a href="figures/fig2.pdf">Open Figure 2 PDF</a>.</p>
-        </object>
-        <div class="media-caption">
-          <strong>Figure 2 · Synthetic trajectory recovery</strong>
-          <span>IMMFM better follows complex S-shaped and σ-shaped dynamics.</span>
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Main Results</h2>
+    <div class="content">
+      <p>
+        On ADNI, Brain MS, and Brain GBM, IMMFM variants outperform competitive Neural ODE/SDE, diffusion, and flow baselines.
+        Reported gains include <strong>+1.0 to +4.4% Dice</strong>, <strong>+1.5 to +2.2 dB PSNR</strong>, and <strong>+1.2 to +4.5% SSIM</strong>.
+        For highly stochastic cohorts, the uncertainty-aware SU-IMMFM variant is strongest.
+      </p>
+      <p>
+        The disease-progression analysis also shows downstream value: in ADNI, AD-vs-CN classification improves from <strong>71.7%</strong> at ~18 months to <strong>80.8%</strong> using model-forecasted ~36 month trajectories.
+      </p>
+    </div>
+
+    <div class="columns is-multiline">
+      <div class="column is-half">
+        <div class="figure-card">
+          <img src="./figures/fig3.png" alt="Figure 3: Starmen conditional trajectories visualization">
+          <div class="figure-caption"><strong>Figure 3.</strong> Subject-specific conditional trajectories on Starmen.</div>
         </div>
-      </article>
-
-      <article class="media-block">
-        <img src="figures/fig3.png" alt="Figure 3 from paper" />
-        <div class="media-caption">
-          <strong>Figure 3 · Conditional Starmen trajectories</strong>
-          <span>Trajectory class follows the conditioning signal.</span>
+      </div>
+      <div class="column is-half">
+        <div class="figure-card">
+          <img src="./figures/fig4.png" alt="Figure 4: Real neuroimaging forecasts with error maps">
+          <div class="figure-caption"><strong>Figure 4.</strong> Qualitative real-data forecasts and localized error maps.</div>
         </div>
-      </article>
-
-      <article class="media-block">
-        <img src="figures/fig4.png" alt="Figure 4 from paper" />
-        <div class="media-caption">
-          <strong>Figure 4 · Real-world qualitative forecasts</strong>
-          <span>Forecast fidelity and localized error behavior in neuroimaging data.</span>
+      </div>
+      <div class="column is-12">
+        <div class="figure-card">
+          <img src="./figures/fig5.png" alt="Figure 5: Ventricle progression and AD-vs-CN utility plots">
+          <div class="figure-caption"><strong>Figure 5.</strong> Ventricle progression trends and clinically relevant downstream utility.</div>
         </div>
-      </article>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <article class="media-block">
-        <object data="figures/fig5.pdf#view=FitH" type="application/pdf" aria-label="Summary of disease progression trends and downstream clinical utility, including biomarker trajectory behavior and classification improvements over forecasting horizon.">
-          <p class="fallback-text">Figure 5 disease progression preview unavailable. <a href="figures/fig5.pdf">Open Figure 5 PDF</a>.</p>
-        </object>
-        <div class="media-caption">
-          <strong>Figure 5 · Disease progression and downstream utility</strong>
-          <span>Forecasted trajectories connect directly to clinically relevant biomarkers and diagnosis gains.</span>
-        </div>
-      </article>
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Appendix Highlights: Ablations and Extra Experiments</h2>
+    <div class="content">
+      <p>
+        The appendix confirms that all three proposed components contribute meaningfully.
+        The piecewise-quadratic path yields the largest gains (up to <strong>+3.7% Dice</strong>, >2.0 dB PSNR),
+        learned diffusion improves difficult stochastic data (e.g., GBM HD reduction >6.2),
+        and previous-frame conditioning improves trajectory consistency (up to <strong>+2.1% Dice</strong>).
+      </p>
+    </div>
 
-      <article class="media-block">
-        <img src="figures/fig6.png" alt="Figure 6 from paper" />
-        <div class="media-caption">
-          <strong>Figure 6 · Supplementary analysis</strong>
-          <span>Additional evidence for robustness across horizons and cohorts.</span>
-        </div>
-      </article>
-    </section>
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>Prev-frame conditioning</th>
+          <th>Quadratic path</th>
+          <th>Data diffusion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ADNI</td>
+          <td>+0.021 Dice, +1.089 PSNR</td>
+          <td>+0.027 Dice, +1.441 PSNR</td>
+          <td>+0.002 Dice, +0.084 PSNR</td>
+        </tr>
+        <tr>
+          <td>Brain MS</td>
+          <td>+0.007 Dice, +0.940 PSNR</td>
+          <td>+0.030 Dice, +2.098 PSNR</td>
+          <td>+0.004 Dice, +0.146 PSNR</td>
+        </tr>
+        <tr>
+          <td>Brain GBM</td>
+          <td>+0.015 Dice, +1.092 PSNR</td>
+          <td>+0.037 Dice, +1.696 PSNR</td>
+          <td>+0.015 Dice, +0.467 PSNR, −6.290 HD</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <footer>
-      © 2026 Longitudinal Flow Matching · Project page for AISTATS 2026 Spotlight.
-    </footer>
-  </main>
+    <div class="figure-card" style="margin-top:0.8rem;">
+      <img src="./figures/fig6.png" alt="Figure 6: Model robustness across forecasting horizons and cohorts">
+      <div class="figure-caption"><strong>Figure 6.</strong> Supplementary robustness evidence, including behavior across extended horizons and cohorts.</div>
+    </div>
+    <div class="content">
+      <h3 class="title is-6">Temporal generalization and 3D extension</h3>
+      <p>
+        Appendix analyses show expected degradation with increasing forecasting horizon, with the steepest drop in the most unpredictable GBM trajectories.
+        Additional 3D experiments show stronger volumetric forecasting versus 2D, including ADNI Dice improvements from 0.920 to 0.947 and major Hausdorff-distance reductions.
+      </p>
+      <p>
+        These analyses support the main paper narrative: IMMFM improves short-horizon fidelity while remaining useful over longer horizons, and the gains transfer from 2D slices to full 3D volumetric disease progression modeling.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <p>
+        Project page for <em>Longitudinal Flow Matching for Trajectory Modeling</em> · AISTATS 2026 Spotlight.
+      </p>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
