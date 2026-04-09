@@ -1,0 +1,1503 @@
+\documentclass[twoside]{article}
+\usepackage[preprint]{aistats2026}
+% \usepackage[accepted]{aistats2026}
+% \usepackage{natbib}
+\usepackage{colortbl}% allow utf-8 input
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{array}          % improved math handling in tables
+\usepackage{amsmath}
+\usepackage{amsthm}
+\newtheorem{proposition}{Proposition}[section] 
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem*{manualproposition}{Proposition} 
+\newtheorem*{manualtheorem}{Theorem} 
+\newtheorem*{manuallemma}{Lemma} 
+\usepackage{algorithm}
+\usepackage{algpseudocode} % OR \usepackage{algorithmic}, not both
+\usepackage{multirow}   % \multirow cells
+\usepackage{graphicx}
+\usepackage{courier}
+\usepackage[table,xcdraw]{xcolor}      % colour in tables
+\usepackage{hyperref}
+\usepackage{makecell}
+\usepackage{minitoc}
+\definecolor{LightIndigo}{HTML}{EDF0FF}% very-light indigo
+\definecolor{LighGray}{HTML}{D3D3D3}
+% \setlength{\abovecaptionskip}{2.2pt}
+\usepackage{bm}
+\usepackage{etoolbox}
+\usepackage{enumitem}
+\newcommand{\bc}[1]{\textcolor{black}{#1}}
+\usepackage{titletoc}
+\usepackage[utf8]{inputenc}
+\definecolor{custom_green}{HTML}{00b894}
+\definecolor{original_blue}{HTML}{0000ff}
+\definecolor{custom_purple}{HTML}{5f27cd}
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=custom_purple,
+%     filecolor=magenta,      
+%     urlcolor=original_blue,
+%     citecolor=original_blue,
+% }
+
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% If your paper is accepted, change the options for the package
+% aistats2026 as follows:
+%
+% \usepackage[accepted]{aistats2026}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+
+% We also include a `preprint' option for non-anonymous preprints. 
+% Change the options for the package aistats2026 as follows:
+%
+
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, but does not print the copyright and 
+% venue note at the end of the first column of the first page.
+
+% If you set papersize explicitly, activate the following three lines:
+%\special{papersize = 8.5in, 11in}
+%\setlength{\pdfpageheight}{11in}
+%\setlength{\pdfpagewidth}{8.5in}
+
+% If you use the natbib package, activate the following three lines:
+\usepackage[round]{natbib}
+\renewcommand{\bibname}{References}
+\renewcommand{\bibsection}{\subsubsection*{\bibname}}
+
+% If you use BibTeX in apalike style, activate the following line:
+\bibliographystyle{apalike}
+
+\begin{document}
+
+% If your paper is accepted and the title of your paper is very long,
+% the style will print as headings an error message. Use the following
+% command to supply a shorter title of your paper so that it can be
+% used as headings.
+%
+% \runningtitle{I use this title instead because the last one was very long}
+
+% If your paper is accepted and the number of authors is large, the
+% style will print as headings an error message. Use the following
+% command to supply a shorter version of the author names so that
+% they can be used as headings (for example, use only the surnames)
+%
+\runningauthor{Islam, Kuipers, Vadgama, Vente, Khan, Sánchez, Bekkers}
+
+\twocolumn[
+
+\aistatstitle{Longitudinal Flow Matching for Trajectory Modeling}
+\vspace{-15pt}
+\aistatsauthor{%
+\mbox{} \And
+\textbf{Mohammad Mohaiminul Islam} \And
+\mbox{} % placeholders to keep 3-column structure
+\AND
+\textbf{Thijs P. Kuipers} \And
+\textbf{Sharvaree Vadgama} \And
+\textbf{Coen de Vente}
+\AND
+\textbf{Afsana Khan} \And
+\textbf{Clara I. Sánchez} \And
+\textbf{Erik J. Bekkers}
+}
+\vspace{-60pt}
+\aistatsaddress{%
+\mbox{} \And
+QurAI, Univ. of Amsterdam \And
+\mbox{} % placeholders to match the empty cells
+\AND
+BMEP, Amsterdam UMC \And
+AMLab, Univ. of Amsterdam \And
+QurAI, Univ. of Amsterdam
+\AND
+Maastricht University \And
+QurAI, Univ. of Amsterdam \And
+AMLab, Univ. of Amsterdam 
+}
+\vspace{-10pt}
+{\fontsize{11.25}{14}\selectfont$\quad$\centerline{Open-source code: \href{https://github.com/niazoys/longitudinal-flow-matching}{\texttt{github.com/niazoys/longitudinal-flow-matching}}}
+}
+\vspace{15pt}
+]
+
+
+
+
+\begin{abstract}
+Generative models for sequential data often struggle with sparsely sampled and high-dimensional trajectories, typically reducing the learning of dynamics to pairwise transitions. We propose \textit{Interpolative Multi-Marginal Flow Matching} (IMMFM), a framework that learns continuous stochastic dynamics jointly consistent with multiple observed time points. IMMFM employs a piecewise-quadratic interpolation path as a smooth target for flow matching and jointly optimizes drift and a data-driven diffusion coefficient, supported by a theoretical condition for stable learning. This design captures intrinsic stochasticity, handles irregular sparse sampling, and yields subject-specific trajectories. Experiments on synthetic benchmarks and real-world longitudinal neuroimaging datasets show that IMMFM outperforms existing methods in both forecasting accuracy and further downstream tasks.
+\end{abstract}
+
+
+\section{Introduction}
+%paragraph generic trajectory modeling papers -- climate, pde and medical and also cite advances in generative modeling for these
+
+The modeling of trajectories of high-dimensional states is highly relevant in many scientific domains, from climate and geophysical systems \citep{kidger2020neural}, video generation \citep{voleti2021simple, bossa2023multidimensional, dang2023conditional}, and longitudinal biomedical imaging \citep{lachinov2023learning}. Modern continuous-time and generative frameworks have advanced rapidly for modeling these trajectories. Neural ordinary differential equations (NODEs) \citep{chen2018neural} provide a framework for end-to-end learning of ODEs with its time-continuous parametrization. More recently, diffusion based models \citep{shi2023diffusion,liu20232} flow matching \citep{tong2023simulation}, and models based on the Schr{\"o}dinger Bridge approach \citep{hamdouche2023generative} enable the capturing of transitions between arbitrary complex distributions. Neural operator methods also allow for high-resolution data-driven solutions to PDE systems at scale \citep{yang2023fourier}. Together, these developments make it increasingly feasible to model complex and physically consistent trajectories. 
+
+
+\textcolor{black}{While recent advances such as SDE Matching \citep{bartosh2025sde} have successfully extended flow and score matching principles to enable scalable, simulation-free training of latent SDEs, modeling full high-dimensional trajectories, rather than simplifying them to pairwise transitions \citep{liu2025imageflownet}, remains a key challenge. Existing strategies provide partial solutions, but face limitations. \citep{zhang2024trajectory} introduced a rolling window-based approach, but it lacks temporal alignment and is mainly validated on low-dimensional periodic data. More broadly, most continuous generative frameworks are formulated as two-marginal transport problems or as pairwise transitions.} Applied naively, these pairwise approaches reduce trajectory learning to a sequence of independent transport, missing constraints, and dependencies across the full trajectory.
+Extending these approaches to a multi-marginal setting addresses these limitations \citep{pass2015multi}. 
+Concurrent to our work, \citep{lee2025multi} and \citep{rohbeckmodeling} proposed SDE- and ODE-based multi-marginal flow matching methods, respectively, both relying on spline fitting to construct conditional probability paths and thereby addressing the pairwise problem. However, when applied to very high-dimensional data such as images, fitting splines during training can be expensive and unreliable \citep{hastie2009esl, wahba1990spline}, which complicates accurate path learning in these high dimensions.
+Thus, practical modeling of sparse, high-dimensional data remains an open challenge.
+
+
+This challenge is particularly pronounced in clinical medicine, where longitudinal imaging yields repeated views of changing anatomy, yet observations are typically high-dimensional, irregularly and sparsely sampled, and subject-specific.
+Accurate modeling of such trajectories could improve treatment selection, streamline follow-up schedules, and support adaptive prognosis and trial design \citep{caruana2015longitudinal,locascio2011overview}.
+Traditional pipelines simplify the high-dimensional image data to scalar biomarkers or regional volumes before applying sequence models, discarding rich spatial information \citep{lachinov2023learning,lu2024cats,ruan2024comprehensive,lyu2023multimodal,sun2023manifold,dong2023integrated,liu2020optimizing,lei2020deep,nguyen2023clinically}.
+More recent generative approaches operate directly on images but focus primarily on population-level synthesis \citep{wolleb2022medfusion,chen2025generative,zhan2024medm2g,choconditional}, rather than subject-conditioned trajectory modeling needed for prognosis.
+
+%our approach to this -- (could say medical motivation to leverage etc
+
+To address the challenges of modeling sparse, irregular, and high-dimensional trajectories, we introduce Interpolative Multi-Marginal Flow Matching (IMMFM), designed to capture subject-specific dynamics. IMMFM reframes longitudinal trajectory modeling as a multi-marginal path learning problem. Instead of learning only pairwise transitions, IMMFM jointly learns continuous stochastic dynamics that are consistent with multiple observed time points. We build a piecewise-quadratic conditional interpolation path that supplies a smooth target vector field for flow-matching, and learn both drift and a data-driven diffusion coefficient within a stochastic flow framework. This enables the model to capture intrinsic stochasticity and observation uncertainty. We derive a theoretical condition that supports the joint drift-diffusion learning, ensuring identifiability and stable optimization. Practically, IMMFM respects irregular sampling, enforces temporal smoothness across segments, and yields subject-specific conditional trajectories rather than population synthetic samples.
+
+%contribution
+
+We summarize our contributions as follows.
+\begin{itemize}
+    \item We propose a piecewise-quadratic conditional path that yields a smooth and tractable target for flow matching over multiple observations.
+    \item We propose to learn a data-driven diffusion coefficient and prove the necessary theoretical condition for joint drift-diffusion optimization.
+    \item We demonstrate that IMMFM models trajectories effectively in both a low and high-dimensional setting, showing improved performance over NODE and flow-matching baselines on synthetic benchmarks and longitudinal neuroimaging cohorts.
+\end{itemize}
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/fig1.pdf}
+    \vspace{-10pt}
+    \caption{Overview of modeling problem and data. \textbf{(a)} Example of a sparsely and irregularly observed trajectory of disease progression over time. \textbf{(b)}  IMMFM estimates positional uncertainty that informs the SDE's data-driven diffusion term. \textbf{(c)} IMMFM takes as input the position $x_t$, time $t$, and conditional variables $C$ and predicts the velocity $v_\theta$, diffusion term $g_\theta$, and uncertainty $S_\theta$.}
+    \label{fig:overview}
+\end{figure*}
+
+\section{Background}
+% Consider \(z_{1:M} = (x_{t_1}, \ldots, x_{t_M})\)  a sequence of observed data or their latent representations acquired at non-uniform and often sparse time points \(t_0 < t_1 < \cdots < t_M \in [0,1]\), with \(x_i \in \mathbb{R}^D\). Let \(\rho_i\) be the probability distribution of the state at time \(t_i\). We assume that these distributions lie on a smooth manifold embedded in \(\mathbb{R}^d\), where \(d \ll D\). The objective is to learn a continuous probabilistic flow \(p_t(x)\) over \(t \in [0,1]\) such that \(p_{t_i} = \rho_i\) for all \(i\) which captures the individual trajectory-specific changes. Let $v(t, x, c)$ be a Lipschitz continuous time-dependent vector field  \(v : [0,1] \times \mathbb{R}^d \times \mathbb{R}^e \rightarrow \mathbb{R}^d\), where \(v(t, x, c)\) is the velocity of the state at time \(t\). The velocity depends on the current position \(x_t\) and conditioning variables \(c \in \mathbb{R}^e\) (e.g. static covariates, baseline measurements, and/or the state at a previous timepoint). The associated flow operator \(\psi_t(v)\) then pushes the initial distribution \(p_0\) forward to \(p_t\). This means that if a sample \(x_0 \sim p_0\), the distribution of the transformed point \(x_t = \psi_t(v)(x_0)\) is \(p_t\).
+
+
+
+Consider \(z_{1:M} = (x_{t_1}, \ldots, x_{t_M})\) a sequence of observed data or their latent representations acquired at non-uniform and often sparse time points \(t_0 < t_1 < \cdots < t_M \in [0,1]\), with \(x_i \in \mathbb{R}^D\). \textcolor{black}{Note that we do not require that all realizations of the time series are measured at identical, aligned time points; rather, we assume that each observation is sampled from an underlying continuous process over time.} Let \(\rho_i\) be the probability distribution of the state at time \(t_i\). We assume that these distributions lie on a smooth manifold embedded in \(\mathbb{R}^d\), where \(d \ll D\). The objective is to learn a continuous probabilistic flow \(p_t(x)\) over \(t \in [0,1]\) such that \(p_{t_i} = \rho_i\) for all \(i\) which captures the individual trajectory-specific changes. Let $v(t, x, c)$ be a Lipschitz continuous time-dependent vector field  \(v : [0,1] \times \mathbb{R}^d \times \mathbb{R}^e \rightarrow \mathbb{R}^d\), where \(v(t, x, c)\) is the velocity of the state at time \(t\). The velocity depends on the current position \(x_t\) and conditioning variables \(c \in \mathbb{R}^e\) (e.g. static covariates, baseline measurements, and/or the state at a previous timepoint). The associated flow operator \(\psi_t(v)\) then pushes the initial distribution \(p_0\) forward to \(p_t\). This means that if a sample \(x_0 \sim p_0\), the distribution of the transformed point \(x_t = \psi_t(v)(x_0)\) is \(p_t\).
+
+
+
+
+\subsection{Stochastic Differential Equations (SDEs)}
+We consider our trajectory modeling problem as a stochastic process that can be represented as an
+\emph{Itô stochastic differential
+equation} of the form,
+\begin{equation}
+d x_t = u_t(x_t)\,dt + g(t,x_t)\,dW_t \, ,
+    \label{eq:sde}
+\end{equation}
+where \(W_t\) is a standard Brownian motion in \(\mathbb{R}^{d}\) and
+\(g:[0,1] \times\mathbb{R}^d  \!\to\!\mathbb{R}_+\)
+is a diffusion coefficient.
+Evolving an initial density \(p_0\) under Eq. ~\eqref{eq:sde} produces a collection of marginal
+densities \(\{p_t\}_{t\in[0,1]}\), i.e., the density of $x_t$ at each time $t$, governed by the Fokker--Planck equation:
+\begin{equation}
+\partial_t p_t(x)
+\;=\;
+-\,\nabla \cdot \big(p_t\,u_t\big)
+\;+\;\frac{1}{2}\,\Delta\!\big(g(t, x_t)^2\,p_t\big).
+\label{eq:fokker-planck}
+\end{equation}
+\bc{where $u_t$ is the drift term, and $g$ is the diffusion coefficient. 
+The drift $u_t$ captures the mean progression of trajectories, while the diffusion $g$ quantifies stochastic deviations, providing a general formulation for tracing trajectories across continuous change.
+In the deterministic limit when stochastic effects vanish ($g \equiv 0$), this system reduces to an ODE, and the Fokker-Planck equation (Eq.\ref{eq:fokker-planck}) simplifies to the continuity equation of mass transport \citep{gardiner2009stochastic}.}
+
+\subsection{Learning SDEs via Probability Flow and Score Matching}
+\label{sec:sde_ode_score_revised}
+% A primary challenge in learning the SDE in Eq.~\eqref{eq:sde} is that conventional methods often require computationally expensive trajectory simulations. To avoid this, we adopt a simulation-free framework built upon the SDE's connection to its deterministic counterpart, the \emph{probability flow ODE}. This is a deterministic ODE governed by the continuity equation that, by definition, shares the exact same marginals \(p_t\) as the SDE:
+
+A fundamental problem in learning SDE (Eq.~\eqref{eq:sde}) dynamics is the high computational demand of conventional training paradigms, often requiring the simulation of numerous full trajectories to estimate gradients \citep[see also][]{kidger2021efficient, ryder2018blackbox, neurips2024_sde_grad, li2020scalable, tzen2019neural}. This simulation process can be prohibitively slow, particularly in high-dimensional settings. An effective alternative is to leverage the fundamental connection between the SDE and its deterministic counterpart: the \emph{probability flow ODE}. This connection provides an insight central to score-based generative modeling and subsequent samplers \citep{song2021score, lu2022dpmsolver, karras2022edm, li2024sharp, cai2025pfode}. We therefore adopt the simulation-free training framework from \citep{tong2023simulationfree} to learn the drift of the probability flow ODE. This ODE is governed by the continuity equation and shares the exact same marginals \(p_t\) as the SDE (Eq.~\ref{eq:sde}):.
+\begin{equation}
+    \partial_t p_t = -\nabla \cdot (p_t u_t^\circ),
+    \label{eq:continuity}
+\end{equation}
+where \(u_t^\circ\) is the drift of the probability flow. By combining the Fokker-Planck (Eq.~\eqref{eq:fokker-planck}) and continuity (Eq.~\eqref{eq:continuity}) equations, we obtain the following identity (cf.\citep[Eq. 5]{tong2023simulation}):
+\begin{equation}
+u_t(x_t) = \underbrace{v_t(x_t) + \frac{1}{2}\nabla g(t, x_t)^2}_{\text{Prob. flow drift }u_t^\circ(x_t)} + \frac{g(t,x_t)^2}{2} \nabla \log p_t(x_t).
+\label{eq:sde_drift_from_flow_score}
+\end{equation}
+This identity is key to a simulation-free approach, as it decomposes the SDE drift \(u_t\) into two components that can be learned independently. The first component is the probability flow drift \(u_t^\circ\) that captures the average velocity of the system's evolution\footnote{In our formulation, we \textit{absorb} the term \(\tfrac{1}{2}\nabla(g(t,x)^2)\) into the learnable drift \(u_t^\circ\). This avoids expensive gradient computation w.r.t $g$ during inference while leaving the training objective unchanged.} The second component is the score function \(\nabla \log p_t\) that provides a corrective force to ensure the generated trajectories remain plausible. We utilize this decomposition, and learn the SDE drift by training two separate time-dependent neural networks to approximate both the flow drift \(v_\theta(t, x) \approx u_t^\circ(x)\) and the score function \(s_\theta(t, x) \approx \nabla \log p_t(x)\).
+Then the ideal training objective would be to minimize the true marginals \(p_t\): 
+\begin{multline}
+\mathcal{L}_{\text{SDE}}(\theta) =
+\mathbb{E}_{\substack{t \sim \mathcal{U}(0,1)\\ x \sim p_t}}
+\big[ \|v_\theta(t, x) - u^\circ(t, x)\|_2^2  \\
++ \lambda(t)^2 \|s_\theta(t, x) - \nabla \log p_t(x)\|_2^2 \big],
+\label{eq:flow_score_matching_loss}
+\end{multline}
+However, this objective is intractable, as the true marginals $p_t$, the probability flow drift $u^\circ(t, x)$, and the score $\nabla \log p_t(x)$ are all unknown.
+Instead, we use the tractable conditional objective \citep{tong2023simulation,lipman2022flow}, where targets can be derived analyically for constructed conditional paths \(p_t(x \mid z)\):
+\begin{multline}
+\mathcal{L}_{\rm CSDE}(\theta)
+ = \mathbb{E}_{\substack{t \sim \mathcal{U}(0,1)\\ z \sim q\\ x \sim p_t(x \mid z)}}
+ \Biggl[
+ \underbrace{\bigl\lVert v_\theta(t,x,c) - u^\circ_t(x \mid z) \bigr\rVert_2^2}_{\text{Cond. Flow Matching}}\\
+ +\lambda(t)^2
+ \underbrace{\bigl\lVert s_\theta(t,x,c) - \nabla_x \log p_t(x \mid z) \bigr\rVert_2^2}_{\text{Cond. Score Matching}}
+ \Biggr].
+\label{eq:IMMFM_objective_flow_score}
+\end{multline}
+The specific analytical forms of target velocity $u^\circ_t(x \mid z)$ and score $\nabla_x \log p_t(x \mid z)$ depend on how the conditional probability path is constructed.
+% In Section~\ref{sec:IMMFM} we introduce Interpolative Multi-Marginal Flow Matching and detail the specific construction of the conditional probability path that defines our method.
+
+
+
+\section{Interpolative Multi-Marginal Flow Matching (IMMFM)}
+\label{sec:IMMFM}
+
+As established in \ref{sec:sde_ode_score_revised}, our SDE learning strategy relies on the construction of conditional probability path \( p_t(x \mid z) \) and score  \(\nabla_x \log p_t(x \mid z)\) defined in Eq.~\eqref{eq:IMMFM_objective_flow_score}. \textcolor{black}{An overview of our method is presented in Fig.~\ref{fig:overview}.}
+
+\subsection{Conditional Probability Path Construction} 
+Conditional probability paths are commonly defined as Gaussian distributions with time-varying mean and covariance \citep{lipman2022flow}. We follow this approach and define for each trajectory $z \sim q$ the conditional probability path $p_t$:
+\begin{equation}
+p_t(x\mid z) = \mathcal{N}\!\left(x\bigm|\mu_t(z),\;\sigma^2(t)I\right),
+\label{eq:conditional-path}
+\end{equation}
+where $\mu_t(z): [0,1] \times Z \rightarrow \mathbb{R}^d$ and $\sigma(t): [0,1] \rightarrow \mathbb{R}_+$ are the mean and standard deviation, respectively. Eq~\ref{eq:conditional-path} induces a unique conditional velocity (cf. \citep[Thm.~3]{lipman2022flow}):
+\begin{equation}
+u^\circ_t(x \mid z) = \frac{\sigma'(t)}{\sigma(t)}(x - \mu_t(z)) + \mu'_t(z).
+\label{eq:drift-function}
+\end{equation}
+
+% For our multi-marginal setting, we define the mean path $\mu_t(z)$ between observations $x_{t_i}$ and $x_{t_{i+1}}$ using a quadratic interpolation. This extends simple linear transport by incorporating a corrective quadratic term. Crucially, this term depends not only on the current segment's velocity ($v_i$) but also on the anticipated velocity ($v_{i+1}$) of the subsequent segment, thereby yielding smoother and more dynamically aware trajectories. 
+
+In the multi-marginal case, the conditional path is often a simple linear interpolation between the two consecutive points in a trajectory. However, naively chaining these linear paths in a multi-marginal setting leads to a trajectory with discontinuous velocities, which fails to capture the underlying smooth dynamics of the system. We address this by generalizing the path construction, introducing a quadratic term that ensures a smoother transition in velocity. We condition this term on the subsequent trajectory segment to yield probability paths with greater dynamic fidelity. Crucially, this improved consistency is achieved \emph{while preserving the analytical tractability}, which is essential for a simulation-free flow matching objective. We choose $\sigma(t)$ in such a way as to provide the path with a variance structure that is consistent with a Brownian bridge: zero at the observed endpoints ($t_i, t_{i+1}$) and maximum at midway between them. Formally, we define \(\mu_t(z)\) and \(\sigma(t)\) as:
+\begin{flalign}
+& \mu_t(z) = x_{t_i} + v_i (t - t_i)
+  + \tfrac{1}{2}\alpha_t (v_i - v_{i+1})(t - t_i) && \notag\\
+& \sigma(t) = \sigma_0 (t - t_i)\,\alpha_t && \label{eq:combined_mu_sigma}
+\end{flalign}
+where $t$ is strictly between $[t_i,t_{i+1}]$, $v_i=\tfrac{x_{t_{i+1}} - x_{t_i}}{t_{i+1} - t_i}$ is the velocity of the $[t_i, t_{i+1}]$ segment, and $\alpha_t = \frac{t_{i+1}-t}{t_{i+1}-t_i}$ is a time-dependent blending coefficient. This choice of $\mu_t(z)$ and $\sigma(t)$ leads to the associated conditional velocity $u^\circ_t(x|z)$ by substituting their respective derivatives into the general form of Eq.~\eqref{eq:drift-function}. This yields our \emph{blended velocity field}:
+\begin{flalign}
+& u^\circ_t(x \mid z)
+   =v_i + \frac{1}{2}(v_i - v_{i+1})(2\alpha_t - 1) \notag\\
+&\qquad \qquad \qquad \qquad  + \frac{\sigma'(t)}{\sigma(t)}\bigl(x - \mu_t(z)\bigr) , &&
+\label{eq:blended-drift}
+\end{flalign}
+where $\mu'_t(z)$ and $\sigma'(t)$ are the time derivatives of $\mu_t(z)$ and $\sigma(t)$, respectively. See Appendix~\ref{mu_sigma_prime} for the full derivation. The corresponding conditional score function that is required for defining the full conditional SDE drift via Eq.~\eqref{eq:sde_drift_from_flow_score}, is analytically tractable for this Gaussian path:
+\begin{equation}
+\nabla_x \log p_t(x \mid z) = \frac{\mu_t(z)-x}{\sigma^2(t)} \, .
+\label{eq:conditional_score}
+\end{equation}
+These expressions for the blended velocity field in Eq.~\eqref{eq:blended-drift} and the conditional score in Eq.~\eqref{eq:conditional_score} provide the analytically tractable targets for the neural networks $v_\theta$ and $s_\theta$ in our learning objective, Eq.~\eqref{eq:IMMFM_objective_flow_score}.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[height=200px,width=0.94\linewidth]{img/shape_full_4_largermse_v2.pdf}
+    \vspace{-12pt}
+    \caption{Trajectories on synthetic S-shaped (top row) and $\sigma$-shaped (bottom row) Gaussian datasets. Colored dots show subsets of training samples, and grey lines show the predicted trajectories. From left to right: TFM \citep{zhang2024trajectory}, L-MMFM \citep{rohbeckmodeling}, MMFM \citep{rohbeckmodeling}, and IMMFM (ours).}
+    \label{fig:synthetic}
+\end{figure*}
+
+\subsection{Uncertainty as a Learned Diffusion Coefficient}
+\label{sec:matching_objective}
+\bc{
+ With the target velocity $u^\circ_t(x \mid z)$ and score $\nabla_x \log p_t(x \mid z)$  of the SDE's drift term now fully specified, the final component of our model is the diffusion coefficient, $g(t)$. We learn the two components of the SDE drift as separate, independent functions. Because these components are learned independently of any specific diffusion schedule, they can be recombined at inference time with an \emph{arbitrary} diffusion coefficient \(g(t)\) to form a valid SDE \citep{tong2023simulation}. We use this flexibility and learn a data-driven diffusion coefficient \(g_\theta\)\footnote{In practice, $g_\theta$ outputs multiple scalars, with Eq.~\ref{eq:sde} and Eq.~\ref{eq:fokker-planck} applied to each.}. More specifically, we let the stochasticity of the model reflect its predictive confidence by matching the diffusion \(g_\theta^2\) to the squared predictive error:}
+\begin{multline}
+\label{eq:diffusion-position-final}
+\mathcal{L}_{\rm uncertainty}(\theta) = \mathbb{E}_{t, z, x} \Biggl[ \Biggl\lVert g_\theta(t,x_t,c)^2 - \\
+ \underbrace{\lVert x_i + (t_{i+1}-t_i)u_\theta(t,x_t,c) - x_{t_{i+1}} \rVert_2^2}_{\text{Squared error of predictive construction}} \Biggr\rVert_2^2 \Biggr].
+\end{multline}
+
+\subsection{Training Objective}
+
+We formalize the overall training objective of our model, which follows a joint formulation of the primary conditional SDE objective from Eq.~\eqref{eq:IMMFM_objective_flow_score} and the uncertainty objective from Eq.~\eqref{eq:diffusion-position-final}:
+\begin{equation}
+\mathcal{L}_{\rm IMMFM}(\theta) = \mathcal{L}_{\rm CSDE}(\theta) + \beta  \mathcal{L}_{\rm uncertainty}(\theta),
+\label{eq:IMMFM-complete}
+\end{equation}
+where $\beta$ is a small positive weight. This composite objective is designed for the joint 
+optimization of the drift ($v_\theta$), score ($s_\theta$), and diffusion ($g_\theta$) components.
+
+{\color{black}
+We now establish the theoretical basis of our training objective. We begin with a key lemma regarding the residual of the drift approximation.
+
+\begin{lemma}[Zero-mean residual]
+\label{thm:lemma_zero_mean}
+Let $\Delta t := t_{i+1}-t_i$ and define the residual for $t\in(t_i,t_{i+1})$ as $r_\theta(t,x,z) = x_i + \Delta t\,u_\theta(t,x,c) - x_{t_{i+1}}$. If the learned drift matches the true drift, i.e., $u_\theta(t,x,c)=u_t(x)$, then $\mathbb{E}_{z|x,t}[\,r_\theta(t,x,z)\,]=0$.
+\end{lemma}
+
+This lemma states that a perfectly learned drift implies a zero-mean residual error. This property is central to our main result:
+
+\begin{proposition}[Gradient equivalence at stationary points]
+\label{thm:grad-eq}
+Under regularity, realizability, and optimality conditions, every stationary point of $\mathcal L_{\mathrm{SDE}}$ (Eq.~\ref{eq:flow_score_matching_loss}) is a stationary point of $\mathcal L_{\mathrm{IMMFM}}$ (Eq.~\ref{eq:IMMFM-complete}).
+\end{proposition}
+
+{\color{black}
+% \subsection{Proof of Proposition \ref{thm:grad-eq}}
+% \label{app:proof_prop_3_1}
+
+To provide a formal proof, we first state the necessary assumptions and establish the relevant lemma on which the proof is based.
+
+\paragraph{(A1) Regularity:} The probability density $p_t(x)$, the drift $u_\theta$, and the diffusion $g_\theta$ are continuously differentiable with respect to their parameters and state variables. This permits the interchange of expectation and differentiation.
+\paragraph{(A2) Realizability:}  The function class for the drift $v_\theta$ and score $s_\theta$ is sufficiently expressive to contain the true probability flow drift $u^\circ_t$ and score $\nabla \log p_t$.
+\paragraph{(A3) Optimality:} We consider a parameter set $\theta^*$ that is a stationary point of the SDE objective $\mathcal{L}_{\text{SDE}}$. Specifically, we assume $\theta^*$ achieves the global minimum where $v_{\theta^*} = u^\circ$ and $s_{\theta^*} = \nabla \log p_t$.
+
+\paragraph{Remark on Assumptions.}
+These conditions are standard in the analysis of neural differential equations and flow matching.
+\textbf{(A1)} is a technical necessity to ensure that the loss gradients are well-defined and that operations such as differentiating under the integral sign are valid; it is satisfied by using smooth activation functions (e.g., SiLU, GELU) and standard diffusion processes.
+\textbf{(A2)} is a standard assumption in non-parametric estimation and learning theory, positing that our neural network architecture has sufficient capacity to approximate the true dynamics. Given the universal approximation capabilities of modern deep networks, this is a reasonable theoretical idealization.
+\textbf{(A3)} focuses the analysis on the properties of the ideal limit of training. It allows us to decouple the \emph{consistency} of the objective from the \emph{optimization dynamics}, ensuring that if the optimization succeeds (finding the global minimum of the SDE loss), the uncertainty quantification is also consistent.
+
+\begin{proof}[Proof of Lemma \ref{thm:lemma_zero_mean}]
+The Markov property of the target SDE implies that the expected future state given the current state $x_t=x$ evolves according to the drift: $\mathbb E[x_{t_{i+1}}\mid x_t=x]=x+\Delta t\,u_t(x)$.
+Substituting this into the expectation of the residual:
+\begin{align}
+   \mathbb{E}_{z|x,t}[r_\theta] &= x_i + \Delta t\,u_\theta(t,x,c) - \mathbb{E}_{z|x,t}[x_{t_{i+1}}]\\ &= x + \Delta t\,u_\theta - (x + \Delta t\,u_t). 
+\end{align}
+
+
+When $u_\theta = u_t$, this difference is zero.
+\end{proof}
+
+\begin{proof}[Proof of Proposition \ref{thm:grad-eq}]
+The total gradient is $\nabla_\theta \mathcal{L}_{\text{IMMFM}} = \nabla_\theta \mathcal{L}_{\text{CSDE}} + \beta \nabla_\theta \mathcal{L}_{\text{uncertainty}}$.
+From \citep[Thm 3.2]{tong2023simulation}, we know that $\nabla_\theta \mathcal{L}_{\text{CSDE}} = \nabla_\theta \mathcal{L}_{\text{SDE}}$.
+By Assumption (A3), $\theta^*$ is a stationary point of $\mathcal{L}_{\text{SDE}}$, so $\nabla_\theta \mathcal{L}_{\text{CSDE}}(\theta^*) = 0$.
+It remains to show that $\nabla_\theta \mathcal{L}_{\text{uncertainty}}(\theta^*) = 0$.
+
+The uncertainty loss for a single sample is $\ell_{\text{unc}} = \|g_\theta^2 - r_\theta^2\|_2^2$. Its gradient is:
+\[
+\nabla_\theta \ell_{\text{unc}} = 2(g_\theta^2 - r_\theta^2)\nabla_\theta g_\theta^2 - 2g_\theta^2 \nabla_\theta r_\theta^2.
+\]
+Taking the expectation conditioned on $x,t$:
+\[
+\mathbb{E}_{z|x,t}[\nabla_\theta \ell_{\text{unc}}] = 2(g_\theta^2 - \mathbb{E}_{z|x,t}[r_\theta^2])\nabla_\theta g_\theta^2 - 2g_\theta^2 \nabla_\theta \mathbb{E}_{z|x,t}[r_\theta^2].
+\]
+At $\theta^*$, we have $u_{\theta^*} = u_t$ (by A2, A3 and the drift decomposition). Thus, by Lemma \ref{thm:lemma_zero_mean_app}, $\mathbb{E}[r_{\theta^*}] = 0$.
+The second moment is then the variance: $\mathbb{E}[r_{\theta^*}^2] = \text{Var}(r_{\theta^*})$.
+The diffusion $g_{\theta}$ is trained to match this variance (heteroscedastic regression). At the optimum $\theta^*$, we have $g_{\theta^*}^2 = \mathbb{E}[r_{\theta^*}^2]$.
+Substituting this into the gradient equation:
+\begin{enumerate}
+    \item The first term vanishes because $g_{\theta^*}^2 - \mathbb{E}[r_{\theta^*}^2] = 0$.
+    \item The second term involves $\nabla_\theta \mathbb{E}[r_\theta^2]$. Note that $\mathbb{E}[r_\theta^2] = \text{Var}(r_\theta) + (\mathbb{E}[r_\theta])^2$. Since $u_{\theta^*}$ is the true drift (conditional expectation), it minimizes the mean squared error of the prediction. Therefore, $\theta^*$ is a stationary point of $\mathbb{E}[r_\theta^2]$ with respect to the drift parameters. Thus, $\nabla_\theta \mathbb{E}[r_\theta^2]|_{\theta^*} = 0$.
+\end{enumerate}
+Since both terms vanish, $\nabla_\theta \mathcal{L}_{\text{uncertainty}}(\theta^*) = 0$.
+Consequently, $\nabla_\theta \mathcal{L}_{\text{IMMFM}}(\theta^*) = 0$.
+\end{proof}
+}
+
+
+
+
+At the stationary point of the SDE objective, the uncertainty objective has a zero gradient; the residual is zero-mean, and the learned diffusion matches the true variance. This guarantees that the uncertainty objective introduces no bias into the learned drift and score functions, allowing both the dynamics and uncertainty to be optimized jointly without compromising the fidelity of the generated trajectories.
+}
+
+\paragraph{Training Objective in Practice.}
+The objective in Eq~\eqref{eq:IMMFM-complete} requires complete trajectories for supervision. However, real-world longitudinal datasets rarely provide complete trajectories, but instead consist of sparsely sampled marginal distributions $(\rho_0, \rho_1, \ldots, \rho_M)$ without explicit pairings across time.
+We therefore outline a general solution based on multi-marginal optimal transport, which provides a framework to construct the necessary joint distribution $q(z)$ over these sparsely sampled trajectories.
+
+\subsection{Constructing Trajectories via Optimal Transport}
+\label{sec:mmot_coupling_unified}
+Multi-marginal optimal transport (MMOT) finds the most probable cost-optimal couplings between observations. We formulate MMOT under the assumption of a pairwise additive structure for the global cost \citep{rohbeckmodeling} of the trajectory:
+\begin{equation}
+C(x_{t_0}, \ldots, x_{t_M}) = \sum_{i=0}^{M-1} k(x_{t_i},x_{t_{i+1}}),
+\end{equation}
+where $k(\cdot,\cdot)$ represents the transition cost between any two sequential states and $C(\cdots)$ denotes the total cost over the entire trajectory. Under this additive cost structure, the MMOT problem decomposes into a series of independent, simpler pairwise Optimal Transport (OT) problems. The optimal coupling between each consecutive pair of observations $(\rho_i, \rho_{i+1})$ can therefore be found separately. We apply this pairwise OT framework to address the sparsely sampled trajectories of real-world longitudinal datasets. More specifically, the cost $k(x_{t_i}, x_{t_{i+1}})$ becomes the squared Euclidean distance $\|x_{t_i} - x_{t_{i+1}}\|_2^2$, and the minimization is performed over the \emph{augmented empirical distributions} $\rho_i^{\dagger}$ and $\rho_{i+1}^{\dagger}$.
+\textcolor{black}{These represent the original data mapped through a set of alignment transformations to ensure smooth and invertible spatial mappings between timepoints, such as the diffeomorphic registrations described by \citep{Mok_2020_CVPR}. This effectively turns the MMOT task into a pairwise \emph{spatial alignment problem}, i.e., registration, where we directly register pairs of images by finding a transformation that maps one onto the other. The resulting set of pairwise transformations then defines the optimal transport plan:}
+\begin{equation}
+\pi_{i,i+1}^{*} = \argmin_{\pi \in \Pi(\rho_i^{\dagger}, \rho_{i+1}^{\dagger})} \int_{\mathbb{R}^d \times \mathbb{R}^d} \|x_{t_i} - x_{t_{i+1}}\|_2^2 \, d\pi(x_{t_i},x_{t_{i+1}})
+\end{equation}
+As a result, the OT framework is a flexible tool to account for any kind of misalignment between trajectory states, given that it can be expressed through a cost function.
+After solving for all the optimal pairwise plans $(\pi_{0,1}^{*}, \pi_{1,2}^{*}, \ldots)$ \citep{zhou2024efficient}, they can be combined to reconstruct the full multi-marginal distribution $q(z)$ via the following proposition (proof in Appendix \ref{app:multi-marginal-proof}).
+
+\begin{proposition}[Diffeomorphic MMOT Decomposition]
+\label{thm:mmot-decomposition}
+Under the pairwise additive cost structure, MMOT decomposes into a series of independent pairwise OT problems. The resulting joint coupling is:
+\begin{equation}
+q(z) = \pi^{*}(x_{t_0}, \ldots, x_{t_M}) = \frac{\prod_{i=0}^{M-1} \pi_{i,i+1}^{*}(x_{t_i}, x_{t_{i+1}})}{\prod_{i=1}^{M-1} \rho_i^{\dagger}(x_{t_i})},
+\end{equation}
+preserving the intermediate augmented marginals.
+\end{proposition}
+
+
+% \subsection{Algorithm}
+
+% Algorithms~\ref{alg:immfm_training} and~\ref{alg:immfm_forecasting} detail the IMMFM training procedure and autoregressive forecasting (supporting both ODE and SDE simulation), respectively. For datasets with fixed longitudinal observations, the required MMOT plans can be computed offline as a one-time preprocessing step and loaded during training, significantly reducing computational overhead.
+
+% \begin{algorithm}[t]
+% \caption{IMMFM Training}
+% \label{alg:immfm_training}
+% \begin{algorithmic}[1]
+% \State \textbf{Input:} Training data $\mathcal{D} = \{ \mathbf{z}_n \}_{n=1}^N$, initial variance parameter $\sigma_0$, loss weight $\beta$.
+% \State \textbf{Initialize networks:} Drift $v_{\theta}$, Score $s_{\theta}$, Diffusion $g_{\theta}$.
+% \State \textbf{while} training \textbf{do}
+% \State Sample a mini-batch of full trajectories $\{ (x_{t_0}, \ldots, x_{t_M}) \}$ from $\mathcal{D}$.
+% \For{each trajectory $\mathbf{z} = (x_{t_0}, \ldots, x_{t_M})$ in the mini-batch}
+% \State Sample $t \sim \mathcal{U}(t_0, t_M)$.
+% \State Find index $j$ such that $t \in [t_j, t_{j+1})$.
+% \State Select segment data: $t_a \leftarrow t_j$, $x_a \leftarrow x_{t_j}$, $t_b \leftarrow t_{j+1}$, $x_b \leftarrow x_{t_{j+1}}$.
+% \State Set conditioning variable $c \leftarrow x_{t_{j-1}}$ (or zero vector if $j=0$).
+% \State Define local interp. velocities $v_j \leftarrow \frac{x_b - x_a}{t_b - t_a}$ and $v_{j+1} \leftarrow \frac{x_{t_{j+2}} - x_b}{t_{j+2} - t_b}$ (or $v_j$ if $j=M-1$).
+% \State Compute $\alpha_t \leftarrow \frac{t_b - t}{t_b - t_a}$.
+% \State Compute $\mu_t \leftarrow x_a + v_j (t - t_a) + \frac{1}{2}\alpha_t (v_j - v_{j+1})(t - t_a)$.
+% \State Compute $\mu'_t \leftarrow v_j + \frac{1}{2}(v_j - v_{j+1})(2\alpha_t - 1)$.
+% \State Sample $x \sim \mathcal{N}(x \mid \mu_t, \sigma(t)^2 I)$, with $\sigma(t) = \sigma_0 (t-t_a)\alpha_t$.
+% \State Compute target velocity $u^\circ_t(x \mid \mathbf{z}) \leftarrow \frac{\sigma'(t)}{\sigma(t)}(x - \mu_t) + \mu'_t$, with $\sigma'(t) = \sigma_0(2\alpha_t-1)$.
+% \State Compute target score $\nabla_x \log p_t(x \mid \mathbf{z}) \leftarrow \frac{\mu_t - x}{\sigma(t)^2}$.
+% \State Compute $\mathcal{L}_{\rm CSDE} \leftarrow \| v_{\theta}(t,x,c) - u^\circ_t(x \mid \mathbf{z}) \|_2^2 + \lambda(t)^2 \| s_{\theta}(t,x,c) - \nabla_x \log p_t(x \mid \mathbf{z}) \|_2^2$.
+% \State Assemble SDE drift $u_{\theta}(t,x,c) \leftarrow v_{\theta}(t,x,c) + \frac{g_{\theta}(t,x,c)^2}{2} s_{\theta}(t,x,c)$.
+% \State Predict endpoint $\hat{x}_{t_{b}} \leftarrow x + (t_b - t) u_{\theta}(t,x,c)$.
+% \State Compute $\mathcal{L}_{\rm uncertainty} \leftarrow \| g_{\theta}(t,x,c)^2 - \| \hat{x}_{t_{b}} - x_b \|_2^2 \|_2^2$.
+% \State Compute $\mathcal{L}_{\rm IMMFM}(\theta) \leftarrow \mathcal{L}_{\rm CSDE} + \beta \mathcal{L}_{\rm uncertainty}$.
+% \State Update $\theta$ using $\nabla_{\theta} \mathcal{L}_{\rm IMMFM}(\theta)$.
+% \EndFor
+% \textbf{end while}
+% \State \textbf{Output:} Trained networks $v_{\theta}, s_{\theta}, g_{\theta}$.
+% \end{algorithmic}
+% \end{algorithm}
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.98\linewidth]{img/starman_2.png}
+    \vspace{-8pt}
+    \caption{Trajectory on Starmen dataset. The conditioning frame is marked with green, and the reference starting frame is marked with blue. On the left \emph{Hand-downward motion}, on the right \emph{Hand-upward motion}.}
+    \label{fig:starmen}
+    \vspace{-12pt}
+    \end{figure}
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.97\linewidth]{img/ADNI_one_row.png}
+    \vspace{-12pt}
+    \caption{Visual comparison of forecasting results on the Alzheimer's (ADNI), the first row displays the forecasted image. The second row shows the corresponding pixel-wise difference map between the forecast and the ground truth. The different evaluation metrics DSC, HD, and PSNR are listed at the top. }
+
+    \label{fig:all_traj}
+\end{figure*}
+
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{img/fig4_compact_vertical.pdf}
+    \vspace{-12pt}
+    \caption{\texttt{(a)} Ground truth and predicted mean ventricle growth over time. \texttt{(b)} Ventricular areas at the second visit ($\sim$18 months) versus model-predicted areas at the last visit ($\sim$36 months) for Alzheimer’s (AD) and cognitively normal (CN) subjects.}
+    \label{fig:ad_dist}
+\end{figure}
+
+
+
+% =====================================
+% Adjusted significant digits
+% =====================================
+\begin{table*}[t!]
+  \centering
+  \caption{Trajectory forecasting performance, averaged over three runs and all timepoints. \textcolor{black}{Results show the average over all time points, three runs, and three seeds with best results in \textbf{bold}.} Reported $\pm$ values indicate inter-subject standard deviation.} 
+  \label{tab:forecasting}
+  \small
+  \setlength{\tabcolsep}{4.5pt}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{llcccccccc}
+    \toprule
+    Dataset & Metric & ImageFlowNet & I2SB & TFM  & L-MMFM & M-MMFM & O-IMMFM & S-IMMFM & SU-IMMFM\\
+    \midrule
+% =====================  Starmen  =====================
+      Starmen & MSE$\times$10~$\downarrow$ & 0.26$\pm$0.02 & 0.57$\pm$0.37 & 0.23$\pm$0.09  & 0.11$\pm$0.13 & 0.12$\pm$0.14 & \textbf{0.09$\pm$0.01} & 0.09$\pm$0.12 & 0.09$\pm$0.21  \\  
+    \midrule
+% =====================  ADNI  ========================
+    \multirow{5}{*}{ADNI} 
+ & PSNR $\uparrow$ & 36.43$\pm$1.76 & 35.56$\pm$1.97 & 36.01$\pm$4.02 &  36.07$\pm$2.41 & 36.02$\pm$2.45 & 37.51$\pm$2.24 & 37.43$\pm$2.22 & \textbf{37.52$\pm$2.24}\\
+  & SSIM $\uparrow$ & 0.94$\pm$0.02 & 0.97$\pm$0.01 & 0.93$\pm$0.11 &  0.96$\pm$0.04 & 0.96$\pm$0.04 & 0.97$\pm$0.06 & 0.97$\pm$0.05  & \textbf{0.97$\pm$0.04} \\
+  & MSE$\times$10~$\downarrow$ & 0.04$\pm$0.02 & 0.05$\pm$0.03 & 14.30$\pm$0.03 &  0.02$\pm$0.06 & 0.02$\pm$0.07 & 0.02$\pm$0.07 & \textbf{0.02$\pm$0.05}  & 0.02$\pm$0.06\\
+  & DSC  $\uparrow$ & 0.91$\pm$0.15 & 0.91$\pm$0.15 & 0.89$\pm$0.17 & 0.91$\pm$0.19 & 0.9$\pm$0.14 & 0.92$\pm$0.14 & 0.92$\pm$0.14  & \textbf{0.92$\pm$0.14}\\
+  & HD   $\downarrow$ & 10.70$\pm$48.27 & 8.78$\pm$46.82 & 11.00$\pm$21.11 &  8.89$\pm$26.74& 11.78$\pm$25.17  & 6.73$\pm$25.01  & 7.17$\pm$29.73 & \textbf{6.50$\pm$22.66}\\
+    \midrule
+  
+% =====================  Brain MS  ====================
+\multirow{5}{*}{Brain MS} 
+  & PSNR $\uparrow$ & 31.72$\pm$1.83 & 32.77$\pm$0.26 & 31.4$\pm$2.73 & 34.57$\pm$3.24 & 33.75$\pm$3.32 & 36.67$\pm$3.37 & 36.63$\pm$3.28 & \textbf{36.67$\pm$3.36} \\
+  & SSIM $\uparrow$ & 0.86$\pm$0.05 & 0.93$\pm$0.03 & 0.88$\pm$0.05 & 0.93$\pm$0.06& 0.92$\pm$0.06 & 0.95$\pm$0.04 & 0.95$\pm$0.04 & \textbf{0.95$\pm$0.04} \\
+  & MSE$\times$10~$\downarrow$ & 0.14$\pm$0.10 & 0.05$\pm$0.00 & 13.69$\pm$0.00 & \textbf{0.01$\pm$0.01} & 0.02$\pm$0.01 & \textbf{0.01$\pm$0.01}  & \textbf{0.01$\pm$0.01} & \textbf{0.01$\pm$0.01}\\
+  & DSC  $\uparrow$ & 0.37$\pm$0.23 & 0.43$\pm$0.22 & 0.51$\pm$0.22 &  0.70$\pm$0.10 & 0.66$\pm$0.11 & 0.73$\pm$0.10 & 0.72$\pm$0.10  & \textbf{0.73$\pm$0.12}\\
+  & HD   $\downarrow$ & 63.24$\pm$79.39 & 47.00$\pm$55.39 & 27.71$\pm$0.00  & \textbf{20.57$\pm$10.84} & 24.94$\pm$9.39 & 21.06$\pm$11.17 & 21.17$\pm$11.09 & 21.03$\pm$11.16\\
+ \midrule
+% =====================  Brain GBM  ===================
+    \multirow{5}{*}{Brain GBM}
+      & PSNR $\uparrow$ & \textbf{35.86$\pm$0.12} & 35.49$\pm$0.17 & 27.47$\pm$12.49 & 30.08$\pm$6.35 & 30.17$\pm$6.86 & 31.78$\pm$5.45 & 31.48$\pm$5.45 & 31.94$\pm$5.55 \\
+      & SSIM $\uparrow$ & \textbf{0.94$\pm$0.00} & 0.94$\pm$0.00 & 0.73$\pm$0.37 & 0.89$\pm$0.11  & 0.90$\pm$0.11 & 0.92 $\pm$0.11  & 0.92$\pm$0.21 & 0.93$\pm$0.34 \\
+      & MSE$\times$10~$\downarrow$ & \textbf{0.01$\pm$0.01} & 0.02$\pm$0.01 & 0.03$\pm$0.01 & \textbf{0.01$\pm$0.01}  & 0.01$\pm$0.02 & \textbf{0.01$\pm$0.01}  & \textbf{0.01$\pm$0.01} & \textbf{0.01$\pm$0.01}\\
+      & DSC  $\uparrow$ & 0.30$\pm$0.02 & 0.25$\pm$0.00 & 0.34$\pm$0.28 & 0.42$\pm$0.28  & 0.41$\pm$0.28 & 0.45$\pm$0.28 & 0.45$\pm$0.28 & \textbf{0.46$\pm$0.28}\\
+      & HD   $\downarrow$ & 198.19$\pm$7.78 & 189.61$\pm$7.64 & 271.5$\pm$15.00 & 142.88$\pm$77.476  & 143.03$\pm$79.12 & 141.36$\pm$77.28 & 141.37$\pm$75.42 & \textbf{135.08$\pm$74.42}\\
+    \bottomrule
+  \end{tabular}}
+\end{table*}
+
+
+\section{Experimental Setup}
+This section details our experimental setup, including the baselines, model implementation, datasets, and evaluation metrics.
+% \vspace{-15pt}
+\paragraph{Baselines.}
+We benchmark our method against recent Neural ODE/SDE, denoising diffusion, and flow matching approaches, including ImageFlowNet \citep{liu2025imageflownet}, $I^2SB$ \citep{liu20232}, and Trajectory Flow Matching (TFM) \citep{zhang2024trajectory}. \textcolor{black}{ While non-generative forecasting models form an important class of methods, we restrict our primary evaluation to state-of-the-art generative approaches, as they are conceptually closest to our framework. Furthermore, \citep{liu2025imageflownet} recently demonstrated that ImageFlowNet outperforms standard non-generative forecasting baselines. By establishing that our method surpasses ImageFlowNet, our experiments transitively indicate an advantage over these non-generative approaches as well.} Two concurrent works proposed related multi-marginal flow matching methods: \citep{lee2025multi}, which combines spline fitting with a rolling-window strategy, and \citep{rohbeckmodeling}, which also relies on spline fitting. Although the former appeared too late for inclusion, we benchmark against the latter (MMFM). However, TFM allows us to evaluate a similar rolling-window strategy. For consistency, we use the same network architecture across all flow matching and diffusion-based methods (see Appendix~\ref{app:architecture}).
+
+\paragraph{Datasets.} We validate our IMMFM variants using several longitudinal datasets, beginning with low-dimensional synthetic benchmarks, including S-shaped and $\sigma$-shaped Gaussians to test the learning of changing curvature and crossover points. Our evaluation also includes the controlled Starmen image dataset \citep{Bone2018} and three real-world clinical cohorts with structural MRI scans of patients with Alzheimer's Disease (ADNI1, 317 participants, ~4-6 visits \citep{Mueller2005}), Multiple Sclerosis (MS) (Brain MS, 19 patients, ~4-6 visits \citep{Carass2017}), and Glioblastoma (GB) (Brain GBM, 91 patients, ~2-18 visits) \citep{Suter2022}. \textcolor{black}{We prioritize ADNI-1 over larger cohorts like ADNI-3 to maintain computational feasibility while demonstrating our model’s efficacy in data-constrained clinical settings, where massive longitudinal datasets are often unavailable.} Each visit represents one time point in the disease progression trajectories of the patients. These clinical datasets present challenges due to their high dimensionality, irregular and sparse sampling, and varying numbers of time points. For all image datasets, we first perform spatial alignment of the images as described in Section \ref{sec:mmot_coupling_unified}, using full volumes for 3D methods and extracted slices for 2D methods. Further details on datasets are provided in Appendix \ref{app:datasets}.
+
+% IMMFM operates in the latent space obtained from a pre-trained UNet-style autoencoder. The flow matching dynamics are modeled by a U-ViT-based regressor network \citep{davtyan2023efficient}, that learns the components of the SDE. Specifically, we use the neural networks $v_{\theta}(t,x,c)$ and $s_{\theta}(t,x,c)$ to model the drift and score, respectively. We evaluate three variants of IMMFM: 1) a deterministic ODE version (O-IMMFM), where trajectories are generated using Euler integration, 2) a standard SDE version (S-IMMFM) simulated with the Euler-Maruyama method, and 3) an SDE with our learned, uncertainty-driven diffusion coefficient (SU-IMMFM). We incorporate contextual information to generate subject-specific trajectories rather than population averages. The primary component of $c$ is the latent representation of the preceding image $x_{t_{i-1}}$ when modeling the interval $[t_i, t_{i+1}]$. This provides an implicit initial velocity for the trajectory, enabling the learning of relationships between current and previous states to better predict future evolution. Detailed model implementations are provided in Appendix~\ref{app:architecture}.
+
+
+\paragraph{Modeling Choices.} IMMFM operates in the latent space obtained from a pre-trained UNet-style autoencoder. The flow matching dynamics are modeled by a U-ViT-based regressor network \citep{davtyan2023efficient}, that learns the components of the SDE. Specifically, we use the neural networks $v_{\theta}(t,x,c)$ and $s_{\theta}(t,x,c)$ to model the drift and score, respectively. We evaluate three variants of IMMFM: 1) a deterministic ODE version (O-IMMFM), where trajectories are generated using Euler integration, 2) a standard SDE version (S-IMMFM) simulated with the Euler-Maruyama method, and 3) an SDE with our learned, uncertainty-driven diffusion coefficient (SU-IMMFM). \textcolor{black}{ We emphasize that these three configurations represent independent, valid modeling choices rather than mere ablations. Depending on the application and computational budget, different variants may be preferable. The SDE variants introduce additional computational complexity through score matching and the prediction of the diffusion term. While this capacity is necessary for modeling highly stochastic clinical trajectories, it is not always warranted. For example, in cases where the underlying processes are smooth and largely deterministic, such as the arm movements in the Starmen dataset see Fig.~\ref{fig:starmen}, where the simpler O-IMMFM variant is theoretically sufficient. (Empirically it performs best.)} Across all variants, we incorporate contextual information to generate subject-specific trajectories rather than population averages. The primary component of $c$ is the latent representation of the preceding image $x_{t_{i-1}}$ when modeling the interval $[t_i, t_{i+1}]$. This provides an implicit initial velocity for the trajectory, enabling the learning of relationships between current and previous states to better predict future evolution. Detailed model implementations are provided in Appendix~\ref{app:architecture}.
+
+
+
+\paragraph{Evaluation Metrics.} We evaluate model performance with 1) image-level similarity metrics and 2) downstream segmentation accuracy metrics. Image quality is assessed with standard synthesis metrics. For pixel-wise error, we use \emph{Mean Squared Error (MSE)} and \emph{Peak Signal-to-Noise Ratio (PSNR)}, a logarithmic measure of reconstruction quality \citep{hore2010image}. To assess the preservation of anatomical features, we also report the \emph{Structural Similarity Index (SSIM)} \citep{wang2004image}. To evaluate the model's ability to forecast clinically relevant changes, we measure the geometric accuracy of key regions of interest (ROI) using baseline metrics to validate medical image segmentation \citep{taha2015metrics,isensee2021nnu,menze2015multimodal,simpson2019msd,maierhein2022metrics,zou2004statistical,crum2006generalized}. The \emph{Dice--S{\o}rensen coefficient (DSC)} measures the volumetric overlap between the predicted and ground-truth ROIs \citep{dice1945measures,sorensen1948method}. The \emph{Hausdorff distance (HD)} complements this by measuring the maximum distance between the boundaries of the two segmentations, quantifying contour accuracy \citep{huttenlocher1993comparing}. For details, see Appendix \ref{app:evaluation_metrics}.
+
+\paragraph{Training and Inference.}
+The model is trained to learn the components of the SDE. Following \citep{tong2023simulation}, the score weighting $\lambda(t)$ in Eq.~\ref{eq:IMMFM_objective_flow_score} is set to $2\sigma(t)/\sigma_0^2$. At inference, trajectories are simulated by constructing the full SDE drift from Eq.~\eqref{eq:sde_drift_from_flow_score} and the system evolves according to Eq.~\eqref{eq:sde}.
+For all experiments, we simulate the trajectory \emph{autoregressively}. Training and inference algorithms are provided in Appendix~\ref{app:algorithms}.
+
+
+\section{Experiments}
+
+We begin the evaluation of our proposed method by demonstrating trajectory learning performance on a simple multi-marginal dataset of temporally arranged Gaussians representing S-shape and $\sigma$-shape (see Appendix \ref{app:datasets}). We show in Fig. \ref{fig:synthetic} that our method can learn these simple trajectories effectively with improved mean squared error over the baselines. We exclude ImageFlowNet \citep{liu2025imageflownet} and $I^2$SB \citep{liu20232} from this experiment since they were not developed to handle multi-marginal paths.
+
+\subsection{Subject Specific Trajectories via Conditioning}
+Starmen have three distinct motion classes: 1) hand-downward motion,
+2) hand-upward motion, and 3) static. We train our modelconditioned on the image of the previous time point. As shown in  Fig. \ref{fig:starmen} (and appedix Fig. \ref{fig:starman_large}), our model simulates the trajectory of the correct class solely based on previous frame conditioning. Our method achieves the best MSE compared to all the baselines, see appendix Tab. \ref{tab:forecasting}.
+
+\subsection{Real-World Application: Disease Progression Modeling}
+Tab.~\ref{tab:forecasting} summarizes the quantitative results on the disease progression datasets. IMMFM variants consistently outperform baselines across datasets, with gains of $\bm{1}$–$\bm{4.4\%}$ in Dice score, $\bm{1.5}$–$\bm{2.2}$~dB in PSNR, and $\bm{1.2}$–$\bm{4.5\%}$ in SSIM. On noisy, stochastic clinical datasets, the uncertainty-aware SU-IMMFM provides the best performance. We examine the contribution of each model's individual components in an ablation study in Appendix~\ref{app:ablation-study}. We further show in Tab.~\ref{tab:3d-result} that IMMFM extends from 2D image data to 3D volumetric data, improving Dice by $\bm{\sim3\%}$ and reducing inter-subject variability compared to 2D. 
+
+Qualitatively, IMMFM generates consistent images over both short- and long-term horizons (Fig.~\ref{fig:all_traj} and \textcolor{black}{appendix Fig.~\ref{fig:all_traj_appendix}}; see also temporal generalizability in Appendix~\ref{app:temporal-gen}).
+The model makes clinically meaningful updates, especially around the lesion and tumor regions, where we observe an improved overlap of these regions with their ground-truth counterparts. 
+
+Finally, we examine the specific progression of the disease. For the ADNI dataset, we focus on the ventricle region, as ventricular enlargement is a well-studied biomarker of AD progression and its underlying neurodegenerative process \citep{nestor2008ventricular}. IMMFM captures distinct ventricular growth trajectories for AD versus CN groups without explicit class conditioning (Fig.~\ref{fig:ad_dist}). Using only observed data at the second visit ($\sim$18 months), AD–CN classification reaches $\bm{71.7\%}$. When using trajectories forecasted by our model to $\sim$36 months, AD-CN classification accuracy increases to $\bm{80.8\%}$, a $\bm{9.1\%}$ gain. In practical terms, this corresponds to correctly classifying about nine additional subjects per 100, \emph{18 months earlier} than would be possible using only the observed data (see Appendix~\ref{app:classification_details} for additional details).
+
+
+
+
+
+
+
+% \section{Conclusion}
+% \label{sec:conclusion}
+
+% We introduced Interpolative Multi-Marginal Flow Matching (IMMFM), a framework for learning high-dimensional trajectories from sparse and irregular data. By combining a smooth piecewise-quadratic conditional path with a data-driven diffusion coefficient, IMMFM captures both structured progression and uncertainty. Across synthetic and real datasets, including challenging longitudinal medical imaging benchmarks, IMMFM consistently outperformed prior methods in forecasting accuracy and downstream tasks, demonstrating its improved reliability and clinical relevance. While the approach still depends on high-quality data and sufficient training coverage, future work could address these challenges by developing temporally aware latent spaces \citep{yang2023self}, incorporating biophysical constraints \citep{qian2025physics}, and conditioning on exogenous variables \citep{shaik2024survey}. In conclusion, IMMFM offers a promising foundation for robust, clinically useful trajectory modeling.
+
+
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+\textcolor{black}{We introduced Interpolative Multi-Marginal Flow Matching (IMMFM), a framework for learning high-dimensional trajectories from sparse and irregular data. By combining a smooth piecewise-quadratic conditional path with a data-driven diffusion coefficient, IMMFM captures both structured progression and uncertainty. Across synthetic and real datasets, including challenging longitudinal medical imaging benchmarks, IMMFM consistently outperformed prior methods in forecasting accuracy and downstream tasks, demonstrating its improved reliability and clinical relevance. }
+
+\textcolor{black}{The model's piecewise-quadratic path construction inherently smooths high-frequency oscillations between sparse observations. We view this low-pass filtering effect as a necessary implicit regularization. It ensures stable flow matching by preventing numerical instabilities in chaotic regimes. Crucially, our SU-IMMFM variant compensates for this smoothing by absorbing unmodeled chaotic volatility into its learned diffusion component, preserving the representation of local stochasticity.}
+
+\textcolor{black}{Naturally, the approach still depends on high-quality data and sufficient training coverage. To address these constraints and expand the framework's capabilities, several promising future directions exist. Enhancing the latent space with temporally aware autoencoders \citep{yang2023self, blattmann2023align} could significantly improve trajectory coherence. Furthermore, incorporating multi-modal conditioning \citep{shaik2024survey} and causal representation learning would allow the model to simulate counterfactual interventions, advancing its utility from a prognostic tool to a comprehensive decision support system \citep{von2024causal}. Finally, integrating domain-specific knowledge offers a powerful avenue to improve generalization in data-scarce settings. Depending on the application, this could range from strict Physics-Informed Neural Network (PINN) constraints for systems with well-established governing equations \citep{qian2025physics, cuomo2023scientific} to approximate mechanistic priors, such as network diffusion models of pathology spread, for complex clinical domains like Alzheimer's disease progression. A detailed discussion of these limitations and future directions is provided in Appendix~\ref{app:limitation_future_work}.}
+
+\textcolor{black}{In conclusion, IMMFM offers a promising foundation for robust, clinically useful trajectory modeling.}
+
+
+
+
+
+% \bibliographystyle{plainnat}
+\bibliography{references}
+
+\clearpage
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Checklist}
+
+%%% BEGIN INSTRUCTIONS %%%
+% The checklist follows the references. For each question, choose your answer from the three possible options: Yes, No, Not Applicable.  You are encouraged to include a justification to your answer, either by referencing the appropriate section of your paper or providing a brief inline description (1-2 sentences). 
+% Please do not modify the questions.  Note that the Checklist section does not count towards the page limit. Not including the checklist in the first submission won't result in desk rejection, although in such case we will ask you to upload it during the author response period and include it in camera ready (if accepted).
+
+
+\begin{enumerate}
+
+  \item For all models and algorithms presented, check if you include:
+  \begin{enumerate}
+    \item A clear description of the mathematical setting, assumptions, algorithm, and/or model. [Yes]
+    \item An analysis of the properties and complexity (time, space, sample size) of any algorithm. [Not Applicable]
+    \item (Optional) Anonymized source code, with specification of all dependencies, including external libraries. [Yes]
+  \end{enumerate}
+
+  \item For any theoretical claim, check if you include:
+  \begin{enumerate}
+    \item Statements of the full set of assumptions of all theoretical results. [Yes]
+    \item Complete proofs of all theoretical results. [Yes]
+    \item Clear explanations of any assumptions. [Yes]     
+  \end{enumerate}
+
+  \item For all figures and tables that present empirical results, check if you include:
+  \begin{enumerate}
+    \item The code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL). [Yes]
+    \item All the training details (e.g., data splits, hyperparameters, how they were chosen). [Yes]
+    \item A clear definition of the specific measure or statistics and error bars (e.g., with respect to the random seed after running experiments multiple times). [Yes]
+    \item A description of the computing infrastructure used. (e.g., type of GPUs, internal cluster, or cloud provider). [Yes]
+  \end{enumerate}
+
+  \item If you are using existing assets (e.g., code, data, models) or curating/releasing new assets, check if you include:
+  \begin{enumerate}
+    \item Citations of the creator If your work uses existing assets. [Yes]
+    \item The license information of the assets, if applicable. [Not Applicable]
+    \item New assets either in the supplemental material or as a URL, if applicable. [Yes]
+    \item Information about consent from data providers/curators. [Not Applicable]
+    \item Discussion of sensible content if applicable, e.g., personally identifiable information or offensive content. [Not Applicable]
+  \end{enumerate}
+
+  \item If you used crowdsourcing or conducted research with human subjects, check if you include:
+  \begin{enumerate}
+    \item The full text of instructions given to participants and screenshots. [Not Applicable]
+    \item Descriptions of potential participant risks, with links to Institutional Review Board (IRB) approvals if applicable. [Not Applicable]
+    \item The estimated hourly wage paid to participants and the total amount spent on participant compensation. [Not Applicable]
+  \end{enumerate}
+
+\end{enumerate}
+
+
+
+\clearpage
+\appendix
+\thispagestyle{empty}
+
+% Supplementary material: To improve readability, you must use a single-column format for the supplementary material.
+\onecolumn
+\aistatstitle{Longitudinal Flow Matching For Trajectory Modeling: \\
+Supplementary Materials}
+\vspace{-40pt}
+\startcontents[appendices]
+\printcontents[appendices]{}{1}{\section*{}\setcounter{tocdepth}{1}}
+\rule{\linewidth}{0.6pt}
+
+
+
+
+
+
+% {\color{red}
+% \subsection{Proof of Proposition \ref{thm:grad-eq}}
+% \label{app:proof_prop_3_1}
+
+% \begin{manualproposition}[Restatement of Proposition \ref{thm:grad-eq}]
+% Under regularity (A1), realizability (A2), and optimality (A3) conditions, every stationary point of $\mathcal L_{\mathrm{SDE}}$ is a stationary point of $\mathcal L_{\mathrm{IMMFM}}$.
+% \end{manualproposition}
+
+% To provide a formal proof, we first state the necessary assumptions and establish the relevant lemma on which the proof is based.
+
+% \paragraph{Assumptions.}
+% \begin{itemize}
+%     \item \textbf{(A1) Regularity:} The probability density $p_t(x)$, the drift $u_\theta$, and the diffusion $g_\theta$ are continuously differentiable with respect to their parameters and state variables. This permits the interchange of expectation and differentiation.
+%     \item \textbf{(A2) Realizability:} The function class for the drift $v_\theta$ and score $s_\theta$ is sufficiently expressive to contain the true probability flow drift $u^\circ_t$ and score $\nabla \log p_t$.
+%     \item \textbf{(A3) Optimality:} We consider a parameter set $\theta^*$ that is a stationary point of the SDE objective $\mathcal{L}_{\text{SDE}}$. Specifically, we assume $\theta^*$ achieves the global minimum where $v_{\theta^*} = u^\circ$ and $s_{\theta^*} = \nabla \log p_t$.
+% \end{itemize}
+
+% \paragraph{Remark on Assumptions.}
+% These conditions are standard in the analysis of neural differential equations and flow matching.
+% \textbf{(A1)} is a technical necessity to ensure that the loss gradients are well-defined and that operations such as differentiating under the integral sign are valid; it is satisfied by using smooth activation functions (e.g., SiLU, GELU) and standard diffusion processes.
+% \textbf{(A2)} is a standard assumption in non-parametric estimation and learning theory, positing that our neural network architecture has sufficient capacity to approximate the true dynamics. Given the universal approximation capabilities of modern deep networks, this is a reasonable theoretical idealization.
+% \textbf{(A3)} focuses the analysis on the properties of the ideal limit of training. It allows us to decouple the \emph{consistency} of the objective from the \emph{optimization dynamics}, ensuring that if the optimization succeeds (finding the global minimum of the SDE loss), the uncertainty quantification is also consistent.
+
+% \begin{manuallemma}[Restatement of Lemma \ref{thm:lemma_zero_mean}]
+% \label{thm:lemma_zero_mean_app}
+% Let $\Delta t := t_{i+1}-t_i$ and define the residual for $t\in(t_i,t_{i+1})$ as:
+% \[
+% r_\theta(t,x,z) \;=\; x_i \;+\; \Delta t\,u_\theta(t,x,c) \;-\; x_{t_{i+1}},
+% \]
+% where $u_\theta$ is the assembled SDE drift. If $u_\theta(t,x,c)=u_t(x)$, i.e., the learned drift matches the true drift, then:
+% \[
+% \mathbb{E}_{z|x,t}[\,r_\theta(t,x,z)\,]=0.
+% \]
+% \end{manuallemma}
+% \begin{proof}[Proof of Lemma \ref{thm:lemma_zero_mean}]
+% The Markov property of the target SDE implies that the expected future state given the current state $x_t=x$ evolves according to the drift: $\mathbb E[x_{t_{i+1}}\mid x_t=x]=x+\Delta t\,u_t(x)$.
+% Substituting this into the expectation of the residual:
+% \[
+% \mathbb{E}_{z|x,t}[r_\theta] = x_i + \Delta t\,u_\theta(t,x,c) - \mathbb{E}_{z|x,t}[x_{t_{i+1}}] = x + \Delta t\,u_\theta - (x + \Delta t\,u_t).
+% \]
+% When $u_\theta = u_t$, this difference is zero.
+% \end{proof}
+
+% \begin{proof}[Proof of Proposition \ref{thm:grad-eq}]
+% The total gradient is $\nabla_\theta \mathcal{L}_{\text{IMMFM}} = \nabla_\theta \mathcal{L}_{\text{CSDE}} + \beta \nabla_\theta \mathcal{L}_{\text{uncertainty}}$.
+% From \citep[Thm 3.2]{tong2023simulation}, we know that $\nabla_\theta \mathcal{L}_{\text{CSDE}} = \nabla_\theta \mathcal{L}_{\text{SDE}}$.
+% By Assumption (A3), $\theta^*$ is a stationary point of $\mathcal{L}_{\text{SDE}}$, so $\nabla_\theta \mathcal{L}_{\text{CSDE}}(\theta^*) = 0$.
+% It remains to show that $\nabla_\theta \mathcal{L}_{\text{uncertainty}}(\theta^*) = 0$.
+
+% The uncertainty loss for a single sample is $\ell_{\text{unc}} = \|g_\theta^2 - r_\theta^2\|_2^2$. Its gradient is:
+% \[
+% \nabla_\theta \ell_{\text{unc}} = 2(g_\theta^2 - r_\theta^2)\nabla_\theta g_\theta^2 - 2g_\theta^2 \nabla_\theta r_\theta^2.
+% \]
+% Taking the expectation conditioned on $x,t$:
+% \[
+% \mathbb{E}_{z|x,t}[\nabla_\theta \ell_{\text{unc}}] = 2(g_\theta^2 - \mathbb{E}_{z|x,t}[r_\theta^2])\nabla_\theta g_\theta^2 - 2g_\theta^2 \nabla_\theta \mathbb{E}_{z|x,t}[r_\theta^2].
+% \]
+% At $\theta^*$, we have $u_{\theta^*} = u_t$ (by A2, A3 and the drift decomposition). Thus, by Lemma \ref{thm:lemma_zero_mean_app}, $\mathbb{E}[r_{\theta^*}] = 0$.
+% The second moment is then the variance: $\mathbb{E}[r_{\theta^*}^2] = \text{Var}(r_{\theta^*})$.
+% The diffusion $g_{\theta}$ is trained to match this variance (heteroscedastic regression). At the optimum $\theta^*$, we have $g_{\theta^*}^2 = \mathbb{E}[r_{\theta^*}^2]$.
+% Substituting this into the gradient equation:
+% \begin{enumerate}
+%     \item The first term vanishes because $g_{\theta^*}^2 - \mathbb{E}[r_{\theta^*}^2] = 0$.
+%     \item The second term involves $\nabla_\theta \mathbb{E}[r_\theta^2]$. Note that $\mathbb{E}[r_\theta^2] = \text{Var}(r_\theta) + (\mathbb{E}[r_\theta])^2$. Since $u_{\theta^*}$ is the true drift (conditional expectation), it minimizes the mean squared error of the prediction. Therefore, $\theta^*$ is a stationary point of $\mathbb{E}[r_\theta^2]$ with respect to the drift parameters. Thus, $\nabla_\theta \mathbb{E}[r_\theta^2]|_{\theta^*} = 0$.
+% \end{enumerate}
+% Since both terms vanish, $\nabla_\theta \mathcal{L}_{\text{uncertainty}}(\theta^*) = 0$.
+% Consequently, $\nabla_\theta \mathcal{L}_{\text{IMMFM}}(\theta^*) = 0$.
+% \end{proof}
+% }
+
+\section{Derivation and Proof}
+
+\subsection{Derivative of Mean $\mu_t$ and Varinace $\sigma(t)$} \label{mu_sigma_prime}
+We formulate our \emph{blended velocity field} as:
+\begin{align}
+& u^\circ_t(x \mid z)
+   =v_i + \frac{1}{2}(v_i - v_{i+1})(2\alpha_t - 1) + \frac{\sigma'(t)}{\sigma(t)}\bigl(x - \mu_t(z)\bigr) , &&
+\label{app:blended-drift}
+\end{align}
+where $\mu'_t(z)$ and $\sigma'(t)$ are the time derivatives of $\mu_t(z)$ and $\sigma(t)$, respectively.
+The mean function for this case is:
+\begin{align}
+\mu_t &= x_i + \frac{x_{i+1} - x_i}{t_{i+1} - t_i}(t - t_i) + \frac{1}{2}\left(\frac{x_{i+1} - x_i}{t_{i+1} - t_i} - \frac{x_{i+2} - x_{i+1}}{t_{i+2} - t_{i+1}}\right)\frac{(t - t_i)(t_{i+1} - t)}{t_{i+1} - t_i} \\
+&= x_i + v_i(t - t_i) + \frac{1}{2}(v_i - v_{i+1})\frac{(t - t_i)(t_{i+1} - t)}{t_{i+1} - t_i}
+\end{align}
+
+where the scaled segment velocities are:
+\begin{align}
+v_i &= \frac{x_{i+1} - x_i}{t_{i+1} - t_i} \\
+v_{i+1} &= \frac{x_{i+2} - x_{i+1}}{t_{i+2} - t_{i+1}}
+\end{align}
+
+Derivative of $\mu'_t$ function:
+\begin{align}
+\mu'_t &= \frac{d}{dt}\left[x_i + v_i(t - t_i) + \frac{1}{2}(v_i - v_{i+1})\frac{(t - t_i)(t_{i+1} - t)}{t_{i+1} - t_i}\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\frac{d}{dt}\left[\frac{(t - t_i)(t_{i+1} - t)}{t_{i+1} - t_i}\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\frac{1}{t_{i+1} - t_i}\left[(t_{i+1} - t) - (t - t_i)\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\frac{t_{i+1} - t - t + t_i}{t_{i+1} - t_i} \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\frac{t_{i+1} - t_i - 2(t - t_i)}{t_{i+1} - t_i} \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\left[1 - \frac{2(t - t_i)}{t_{i+1} - t_i}\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\left[1 - 2\left(1-\frac{t_{i+1} - t}{t_{i+1} - t_i}\right)\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})\left[1 - 2(1-\alpha_t)\right] \\
+&= v_i + \frac{1}{2}(v_i - v_{i+1})(2\alpha_t - 1) \\
+\end{align}
+
+% Simplifying further and relating to $v_t$:
+% \begin{align}
+% \mu'_t &= v_i + (v_i - v_{i+1})(\alpha_t - \frac{1}{2}) \\
+% &= v_i\alpha_t + v_i(1-\alpha_t) + (v_i - v_{i+1})(\alpha_t - \frac{1}{2}) \\
+% &= v_i\alpha_t + v_i(1-\alpha_t) + v_i\alpha_t - v_i/2 - v_{i+1}\alpha_t + v_{i+1}/2 \\
+% &= v_i\alpha_t + v_{i+1}(1-\alpha_t) + (v_i\alpha_t - v_i/2 - v_{i+1}\alpha_t + v_{i+1}/2) \\
+% &= v_t + \frac{v_i + v_{i+1}}{2} - v_i\alpha_t - v_{i+1}(1-\alpha_t) \\
+% &= v_t + \frac{v_i - v_{i+1}}{2}
+% \end{align}
+
+% Therefore:
+% \begin{align}
+% \mu'_t = v_t + \frac{v_i - v_{i+1}}{2}
+% \end{align}
+
+
+The variance function defined in Eq. \eqref{eq:combined_mu_sigma}:
+
+\begin{align}
+\sigma(t) &= \sigma_0 \cdot \frac{(t-t_{i})(t_{i+1}-t)}{(t_{i+1}-t_i)}
+\end{align}
+
+Let $\Delta t = t_{i+1} - t_i$:
+
+\begin{align}
+\sigma(t) &= \sigma_0 \cdot \frac{(t-t_{i})(t_{i+1}-t)}{\Delta t}
+\end{align}
+
+We compute the derivative with respect to $t$:
+
+\begin{align}
+\sigma'(t) &= \sigma_0 \cdot \frac{d}{dt}\left[\frac{(t-t_{i})(t_{i+1}-t)}{\Delta t}\right] \\
+&= \sigma_0 \cdot \frac{1}{\Delta t} \cdot \frac{d}{dt}\left[(t-t_{i})(t_{i+1}-t)\right]
+\end{align}
+
+Using the product rule for $(t-t_{i})(t_{i+1}-t)$:
+
+\begin{align}\label{eq:spline_path}
+\frac{d}{dt}\left[(t-t_{i})(t_{i+1}-t)\right] &= (1)(t_{i+1}-t) + (t-t_{i})(-1) \\
+&= (t_{i+1}-t) - (t-t_{i}) \\
+&= t_{i+1} - t - t + t_{i} \\
+&= t_{i+1} + t_{i} - 2t
+\end{align}
+
+Therefore:
+
+\begin{align}
+\sigma'(t) &= \sigma_0 \cdot \frac{t_{i+1} + t_{i} - 2t}{\Delta t} =\sigma_0\,(2\alpha_t-1), \quad \text{where } \alpha_t=\frac{t_{i+1}-t}{\,t_{i+1}-t_i\,}.
+\end{align}
+
+\subsection{Proof of Proposition \ref{thm:mmot-decomposition}}
+\label{app:theory_proof}
+\begin{manualproposition}[Restatement of Proposition \ref{thm:mmot-decomposition}]
+Under the pairwise additive cost structure, the MMOT problem decomposes into a series of independent pairwise OT problems. The resulting joint coupling $q(z)$ is:
+\begin{equation}
+q(z) = \pi^{*}(x_{t_0}, \ldots, x_{t_M}) = \frac{\prod_{i=0}^{M-1} \pi_{i,i+1}^{*}(x_{t_i}, x_{t_{i+1}})}{\prod_{i=1}^{M-1} \rho_i^{\dagger}(x_{t_i})}
+\end{equation}
+This coupling preserves the intermediate augmented marginals.
+\label{app:multi-marginal-proof}
+\begin{proof}
+% ~\ref{prop:multi-marginal-coupling}
+We consider the multi-marginal optimal transport problem with augmented distributions $\rho_i^{\dagger}$ that incorporate all possible diffeomorphic transformations:
+\begin{equation}
+\min_{\pi \in \Pi(\rho_0^{\dagger}, \ldots, \rho_M^{\dagger})} \int C(x_{t_0}, \ldots, x_{t_M}) \, d\pi(x_{t_0}, \ldots, x_{t_M})
+\end{equation}
+where $\Pi(\rho_0^{\dagger}, \ldots, \rho_M^{\dagger})$ denotes couplings with prescribed augmented marginals.
+
+Using the pairwise additive structure, the objective becomes:
+\begin{align}
+\min_{\pi \in \Pi(\rho_0^{\dagger}, \ldots, \rho_M^{\dagger})} \int \sum_{i=0}^{M-1} c(x_{t_i}, x_{t_{i+1}}) \, d\pi(x_{t_0}, \ldots, x_{t_M})
+= \min_{\pi \in \Pi(\rho_0^{\dagger}, \ldots, \rho_M^{\dagger})} \sum_{i=0}^{M-1} \int c(x_{t_i}, x_{t_{i+1}}) \, d\pi_{i,i+1}(x_{t_i}, x_{t_{i+1}})
+\end{align}
+where $\pi_{i,i+1}$ is the marginal of $\pi$ on coordinates $(x_{t_i}, x_{t_{i+1}})$.
+
+We claim that the coupling:
+\begin{equation}
+q(z) = \frac{\prod_{i=0}^{M-1} \pi_{i,i+1}^{*}(x_{t_i}, x_{t_{i+1}})}{\prod_{i=1}^{M-1} \rho_i^{\dagger}(x_{t_i})}
+\end{equation}
+solves the multi-marginal problem. To verify this, we must show it preserves marginals and minimizes cost.
+
+For marginal preservation, we verify that $q(z)$ has the correct marginals. For interior points $i \in \{1,\ldots,M-1\}$:
+\begin{align}
+\int q(z) \prod_{j \neq i} dx_{t_j} &= \int \frac{\prod_{k=0}^{M-1} \pi_{k,k+1}^{*}(x_{t_k},x_{t_{k+1}})}{\prod_{j=1}^{M-1}\rho_j^{\dagger}(x_{t_j})} \prod_{j \neq i} dx_{t_j}\\
+&= \frac{1}{\rho_i^{\dagger}(x_{t_i})} \int \pi_{i-1,i}^{*}(x_{t_{i-1}},x_{t_i}) \pi_{i,i+1}^{*}(x_{t_i},x_{t_{i+1}}) \prod_{k \notin \{i-1,i,i+1\}} \pi_{k,k+1}^{*}(x_{t_k},x_{t_{k+1}}) \prod_{j \neq i} dx_{t_j}
+\end{align}
+
+Using Fubini's theorem to integrate out variables that appear in only one factor:
+\begin{align}
+&= \frac{1}{\rho_i^{\dagger}(x_{t_i})} \left[\int \pi_{i-1,i}^{*}(x_{t_{i-1}},x_{t_i}) \, dx_{t_{i-1}}\right] \left[\int \pi_{i,i+1}^{*}(x_{t_i},x_{t_{i+1}}) \, dx_{t_{i+1}}\right]\\
+&= \frac{1}{\rho_i^{\dagger}(x_{t_i})} \cdot \rho_i^{\dagger}(x_{t_i}) \cdot \rho_i^{\dagger}(x_{t_i}) = \rho_i^{\dagger}(x_{t_i})
+\end{align}
+
+For boundary points:
+\begin{align}
+\int q(z) \prod_{j \neq 0} dx_{t_j} &= \int \pi_{0,1}^{*}(x_{t_0},x_{t_1}) \, dx_{t_1} = \rho_0^{\dagger}(x_{t_0})\\
+\int q(z) \prod_{j \neq M} dx_{t_j} &= \int \pi_{M-1,M}^{*}(x_{t_{M-1}},x_{t_M}) \, dx_{t_{M-1}} = \rho_M^{\dagger}(x_{t_M})
+\end{align}
+
+For cost minimization, the cost under $q(z)$ is
+\[
+\int C(z)\,dq(z)
+= \sum_{i=0}^{M-1}
+  \int c\bigl(x_{t_i},x_{t_{i+1}}\bigr)\,
+     d\pi_{i,i+1}^{*}\bigl(x_{t_i},x_{t_{i+1}}\bigr),
+\]
+which is the sum of optimal pairwise costs. Since each $\pi_{i,i+1}^{*}$ minimizes its respective term, $q(z)$ minimizes the total cost.
+\end{proof}
+\end{manualproposition}
+
+
+
+
+
+
+
+\section{IMMFM Training and Forecasting Algorithms}\label{app:algorithms}
+
+This section provides the detailed procedures for the IMMFM framework. \textbf{Algorithm~\ref{alg:immfm_training}} outlines the complete training process, from sampling trajectories to the stochastic gradient update. \textbf{Algorithm~\ref{alg:immfm_forecasting}} details the autoregressive forecasting method used for inference, which can perform either deterministic (ODE) or stochastic (SDE) simulations. A practical consideration for the training procedure is the use of Multi-Marginal Optimal Transport (MMOT) for constructing the ground-truth trajectories. This potentially expensive MMOT problem can be solved offline as a one-time preprocessing step for datasets where the set of longitudinal observations is fixed. The resulting optimal transport plans can loaded during training, which significantly accelerates the optimization process.
+
+\begin{algorithm}[h]
+\caption{IMMFM Training}
+\label{alg:immfm_training}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Training data $\mathcal{D} = \{ \mathbf{z}_n \}_{n=1}^N$, initial variance parameter $\sigma_0$, loss weight $\beta$.
+\State \textbf{Initialize networks:} Drift $v_{\theta}$, Score $s_{\theta}$, Diffusion $g_{\theta}$.
+\State \textbf{while} training \textbf{do}
+\State Sample a mini-batch of full trajectories $\{ (x_{t_0}, \ldots, x_{t_M}) \}$ from $\mathcal{D}$.
+\For{each trajectory $\mathbf{z} = (x_{t_0}, \ldots, x_{t_M})$ in the mini-batch}
+\State Sample $t \sim \mathcal{U}(t_0, t_M)$.
+\State Find index $j$ such that $t \in [t_j, t_{j+1})$.
+\State Select segment data: $t_a \leftarrow t_j$, $x_a \leftarrow x_{t_j}$, $t_b \leftarrow t_{j+1}$, $x_b \leftarrow x_{t_{j+1}}$.
+\State Set conditioning variable $c \leftarrow x_{t_{j-1}}$ (or zero vector if $j=0$).
+\State Define local interp. velocities $v_j \leftarrow \frac{x_b - x_a}{t_b - t_a}$ and $v_{j+1} \leftarrow \frac{x_{t_{j+2}} - x_b}{t_{j+2} - t_b}$ (or $v_j$ if $j=M-1$).
+\State Compute $\alpha_t \leftarrow \frac{t_b - t}{t_b - t_a}$.
+\State Compute $\mu_t \leftarrow x_a + v_j (t - t_a) + \frac{1}{2}\alpha_t (v_j - v_{j+1})(t - t_a)$.
+\State Compute $\mu'_t \leftarrow v_j + \frac{1}{2}(v_j - v_{j+1})(2\alpha_t - 1)$.
+\State Sample $x \sim \mathcal{N}(x \mid \mu_t, \sigma(t)^2 I)$, with $\sigma(t) = \sigma_0 (t-t_a)\alpha_t$.
+\State Compute target velocity $u^\circ_t(x \mid \mathbf{z}) \leftarrow \frac{\sigma'(t)}{\sigma(t)}(x - \mu_t) + \mu'_t$, with $\sigma'(t) = \sigma_0(2\alpha_t-1)$.
+\State Compute target score $\nabla_x \log p_t(x \mid \mathbf{z}) \leftarrow \frac{\mu_t - x}{\sigma(t)^2}$.
+\State Compute $\mathcal{L}_{\rm CSDE} \leftarrow \| v_{\theta}(t,x,c) - u^\circ_t(x \mid \mathbf{z}) \|_2^2 + \lambda(t)^2 \| s_{\theta}(t,x,c) - \nabla_x \log p_t(x \mid \mathbf{z}) \|_2^2$.
+\State Assemble SDE drift $u_{\theta}(t,x,c) \leftarrow v_{\theta}(t,x,c) + \frac{g_{\theta}(t,x,c)^2}{2} s_{\theta}(t,x,c)$.
+\State Predict endpoint $\hat{x}_{t_{b}} \leftarrow x + (t_b - t) u_{\theta}(t,x,c)$.
+\State Compute $\mathcal{L}_{\rm uncertainty} \leftarrow \| g_{\theta}(t,x,c)^2 - \| \hat{x}_{t_{b}} - x_b \|_2^2 \|_2^2$.
+\State Compute $\mathcal{L}_{\rm IMMFM}(\theta) \leftarrow \mathcal{L}_{\rm CSDE} + \beta \mathcal{L}_{\rm uncertainty}$.
+\State Update $\theta$ using $\nabla_{\theta} \mathcal{L}_{\rm IMMFM}(\theta)$.
+\EndFor\\
+\textbf{end while}
+\State \textbf{Output:} Trained networks $v_{\theta}, s_{\theta}, g_{\theta}$.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h!]
+\caption{IMMFM Forecasting}
+\label{alg:immfm_forecasting}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Trained networks $v_{\theta}, s_{\theta}, g_{\theta}$; observed prefix $(x_{t_0}, \ldots, x_{t_k})$ with $k \ge 1$; forecast end time $t_{end}$; integration step size $\Delta t$; mode $\in$ {'ODE', 'SDE'}.
+\State \textbf{Initialize:} Trajectory $\mathcal{T} \leftarrow [x_{t_0}, \ldots, x_{t_k}]$.
+\State Set current time $t \leftarrow t_k$.
+\State Set current state $x \leftarrow x_{t_k}$.
+\State Set conditioning variable $c \leftarrow x_{t_{k-1}}$.
+\State Set number of steps $N_{steps} \leftarrow \lfloor(t_{end} - t) / \Delta t\rfloor$.
+\For{$i = 0$ to $N_{steps} - 1$}
+\If{mode = 'ODE'}
+    \State Compute ODE drift $u_t \leftarrow v_{\theta}(t,x,c)$.
+    \State Evolve state $x_{new} \leftarrow x + u_t \Delta t$.
+\Else{ (mode = 'SDE')}
+    \State Sample noise $\mathbf{z} \sim \mathcal{N}(0, I)$.
+    \State Compute SDE drift $u_t \leftarrow v_{\theta}(t,x,c) + \frac{g_{\theta}(t,x,c)^2}{2} s_{\theta}(t,x,c)$.
+    \State Get SDE diffusion $g_t \leftarrow g_{\theta}(t,x,c)$.
+    \State Evolve state $x_{new} \leftarrow x + u_t \Delta t + g_t \sqrt{\Delta t}\mathbf{z}$.
+\EndIf
+\State Update conditioning variable $c \leftarrow x$.
+\State Update current state $x \leftarrow x_{new}$.
+\State Update current time $t \leftarrow t + \Delta t$.
+\State Append $x$ to $\mathcal{T}$.
+\EndFor
+\State \textbf{Output:} Complete trajectory $\mathcal{T}$ (observed prefix + forecast).
+\end{algorithmic}
+\end{algorithm}
+
+\newpage
+\section{Datasets}
+\label{app:datasets}
+
+
+
+\paragraph{S-shape and $\sigma$-shape Gaussian Dataset.}
+
+The S-shaped and $\sigma$-shaped Gaussians both consist of 8 marginal distributions in $\mathbb{R}^2$ at arbitrary timepoints $T = (0, 0.17, 0.29, 0.45, 0.65, 0.71,0.85, 1)$.
+We select these two datasets because S-shaped Gaussians involve learning a flow with changing curvature, 
+and the $\sigma$-shaped Gaussians have a crossover point for some $x$ where the flow $u_{t_i}(x) = u_{t_j}(x)$ 
+and $i \neq j$. 
+
+\textbf{ADNI1 Dataset.} ADNI-1, the inaugural phase of the Alzheimer’s Disease Neuroimaging Initiative \citep{Mueller2005}, launched in October 2004 as a five-year multicenter study, enrolling 317 participants—100 cognitively normal (CN) elderly controls, 117 with amnestic mild cognitive impairment (MCI), and 100 with early Alzheimer’s disease(AD) —across 57 sites in the US and Canada. Participants underwent serial 1.5T structural MRI at approximately six-month intervals. For the sake of simplicity, we use only CN and AD subjects. The dataset is provided with the segmentation mask for the ventricle. \textcolor{black}{  Because the actual clinical acquisitions were not imaged at those exact times, we bin the measurements to standard 6-month intervals to facilitate a better and more clinically relevant analysis. For the sake of simplicity, we use only CN and AD subjects. The dataset is provided with the segmentation mask for the ventricle.}
+
+
+\textbf{Brain Multiple Sclerosis Dataset.} We used longitudinal FLAIR-weighted MRI scans from the Brain MS dataset~\citep{Carass2017}, monitoring \bc{19} patients with multiple sclerosis (MS) over an average of 4.4 time points spanning approximately five years. The Training set included manual delineations by two experts, identifying and segmenting the lesions.
+
+\textbf{Brain Glioblastoma Dataset.} We used longitudinal contrast-enhanced T1-weighted MRI scans from the LUMIERE dataset~\citep{Suter2022}, tracking 91 glioblastoma (GBM) patients who underwent a pre-operative scan followed by repeated post-operative scans over up to five years. This resulted in 795 longitudinal image series, each comprising 2–18 time points. This also comes with segmentation labels for necrosis, contrast enhancement, and edema.
+
+
+
+\textbf{Starmen.} The public synthetic Starmen dataset comprises 1\,000 sequences of 10 images each and is commonly used to benchmark longitudinal frameworks~\citep{Bone2018}. In every sequence, the sole temporal change is the raising of the left arm, with each subject’s motion encoded via an affine time parameterization: $t^* = \alpha\,(t - \tau)$, where \(\alpha\) and \(\tau\) are subject-specific parameters. To introduce additional variability, sequences are randomly rotated (uniformly between \(-10^\circ\) and \(10^\circ\)) and translated by up to \(\pm 6.8\) pixels. Of the 1\,000 sequences, 400 are reserved for training, 100 for validation, and the remaining 500 for testing. The ground-truth progression values have a mean of \(-0.12\) and a standard deviation of \(4.25\). Finally, we augment the original dataset by adding two more classes of motion. From only a hand going up motion for each of the splits, we create an equal number of trajectories for two more classes (Hand-downward motion, and static) by reversing the order of the trajectory and replicating the first image 10 times over.
+
+
+
+
+
+\section{Evaluation Metrics}
+\label{app:evaluation_metrics}
+We assess the performance of the model using three primary evaluation metrics: image similarity, residual magnitude, and regions of interest (ROI) similarity.
+
+\textbf{Image Similarity: }
+Image similarity between the real future image $x_{t_j}$ and the predicted future image $\hat{x}_{t_j}$ is quantified using two widely recognized metrics: Peak Signal-to-Noise Ratio (PSNR) and Structural Similarity Index Measure (SSIM). These metrics are standard for image-to-image tasks, including super-resolution, denoising, and inpainting. PSNR is a logarithmic metric that normalizes the Mean Squared Error (MSE) between two images using their dynamic range. It is defined as:
+\begin{equation}
+\operatorname{PSNR}(x_a, x_b) = 10 \log_{10} \left( \frac{R^2}{\operatorname{MSE}(x_a, x_b)} \right)
+\label{eq:psnr}
+\end{equation}
+where $R$ is the common dynamic range of the images. The Mean Squared Error (MSE) is calculated as:
+\begin{equation}
+\operatorname{MSE}(x_a, x_b) = \frac{1}{H \times W} \sum_{h \in H, w \in W} \|x_{a(h,w)} - x_{b(h,w)}\|^2
+\label{eq:mse}
+\end{equation}
+
+SSIM measures the perceptual similarity between two images, capturing structural changes. The formula is defined as:
+\begin{equation}
+\operatorname{SSIM}(x_a, x_b) = \frac{\left(2\mu_{x_a} \mu_{x_b} + c_1\right)\left(2\sigma_{x_a x_b} + c_2\right)}{\left(\mu_{x_a}^2 + \mu_{x_b}^2 + c_1\right)\left(\sigma_{x_a}^2 + \sigma_{x_b}^2 + c_2\right)}
+\label{eq:ssim}
+\end{equation}
+where $\mu_{x_a}$ and $\mu_{x_b}$ are the pixel sample means, $\sigma_{x_a}^2$ and $\sigma_{x_b}^2$ are the variances, $\sigma_{x_a x_b}$ is the covariance of $x_a$ and $x_b$, and $c_1 = (0.01R)^2, c_2 = (0.03R)^2$ are constants for numerical stability.
+
+\textbf{Residual Magnitude: }
+We also assess the magnitude of residual differences between the predicted and real images using Mean Squared Error (MSE).
+
+\textbf{Region of Interest (ROI) Similarity: }
+To accurately capture the ventricle for ADNI and lesion/tumor regions, we use two primary metrics: Dice Similarity Coefficient (DSC) and Hausdorff Distance (HD). These metrics are computed on the binarized atrophy region masks of the real future image $x_{t_j}$ and the predicted future image $\hat{x}_{t_j}$. The DSC and HD are defined as follows respectively:
+
+\begin{equation}
+\text{DSC}(X, Y) = \frac{|X \cap Y|}{|X| + |Y|}
+\label{dsc}
+\end{equation}
+
+\begin{equation}
+\text{HD}(X, Y) = \max \left( \sup_{x \in X} d(x, Y), \sup_{y \in Y} d(X, y) \right)
+\label{hd}
+\end{equation}
+
+
+
+
+
+
+
+\section{Implementation Details} \label{app:implementation_details}
+
+% \subsection{Note Diagonal Diffusion}
+% While Eqs.~\eqref{eq:sde}–\eqref{eq:fokker-planck} are written with a single scalar $g$ for clarity, in our implementation $g_\theta$ outputs one scalar per dimension. Writing $G(t,x,c)=\mathrm{Diag}(g_1(t,x,c),\dots,g_d(t,x,c))$, the SDE used in practice is
+% \[
+% \mathrm{d}x_t \;=\; u_t(x_t)\,\mathrm{d}t \;+\; G(t,x_t,c)\,\mathrm{d}W_t.
+% \]
+% This induces the Fokker–Planck
+% \[
+% \partial_t p_t(x) \;=\; -\,\nabla\!\cdot\!\big(p_t u_t\big) \;+\; \frac{1}{2}\sum_{i=1}^d \partial_{x_i x_i}\!\big(g_i(t,x)^2\,p_t(x)\big),
+% \]
+% and the drift–assembly identity (componentwise)
+% \[
+% u_{t,i}(x) \;=\; u^\circ_{t,i}(x) \;+\; \tfrac{1}{2}\,\partial_{x_i}\!\big(g_i(t,x)^2\big) \;+\; \tfrac{1}{2}\,g_i(t,x)^2\,\partial_{x_i}\log p_t(x).
+% \]
+% All proofs in Section~\ref{sec:matching_objective} remain valid because they rely only on the zero-mean residual and on matching the diffusion to the conditional residual variance; these hold coordinatewise as well.
+
+
+\subsection{Architecture}
+\label{app:architecture}
+\textbf{Flow Regressor:} The flow regressor network for our proposed model, IMMFM, is built upon the U-ViT \citep{yu2022unified} architecture; we specifically adapt the implementation from \citep{davtyan2023efficient}. The network consists of 14 standard ViT\citep{dosovitskiy2021an} blocks. These are interconnected by 4 long skip connections that link the first 4 blocks to the last 4 blocks. Along each skip connection, feature maps are channel-wise concatenated and subsequently projected to the inner dimension of the ViT blocks. Within each ViT block, Layer Normalization is applied before both the Multihead Self-Attention (MHSA) layer and the subsequent MLP. The inner dimension for all ViT blocks is 512, and 8 heads are used in every MHSA layer. For processing the inputs first, the input image $x_{t_i}$ and conditioning $c={x_{t_{i-1}}}$ are channel-wise concatenated and then linearly projected to the inner dimension of the ViT blocks. As for non-imaging conditioning, such as demographics (e.g., sex, age, etc), we use separate projection blocks to project them to the inner dimension and subsequently add them to the imaging inputs. If no preceding image exists, a standard prior (zero vector) was used. Before passing it to the ViT blocks, we add learned positional embedding and a sinusoidal time embedding \citep{vaswani2017attention} of corresponding time  $t_i$ and $t_{i-1}$ of \bc{image latents} $x_{t_i}$ and $x_{t_i}$. Finally, the network outputs velocity $v_\theta$, score $s_\theta$, and uncertainty $g_\theta$.
+
+
+\textbf{Auto Encoder:} For encoding the image to the latent space, we use the UNet architecture proposed in \citep{dhariwal2021diffusion}. However, we drop the long skip connection from encoder to decoder to transform it into an autoencoder so that all the information of the input image is contained within a single latent vector. For the Starman dataset, we use a latent dimension of 256, and for all the clinical datasets, we use 4096.
+
+\textbf{Segmentation Network: } For ROI segmentation, we trained three auxiliary image segmentation networks, each tailored to one of the datasets. These networks follow a UNet \citep{isensee2021nnu} architecture. 
+
+
+\subsection{Data Preprocessing and Augmentation}
+\label{app:data-preprocessing-aug}
+\textcolor{black}{For all three clinical datasets, we register the 3D volumes to have spatial alignment in each trajectory. For this, we use ANTS \citep{Avants2009} to perform Affine followed by Diffeomorphic registration to align each scan towards the first scan in the sequence. To evaluate the computational cost of this OT alignment step, we measured processing times using an Intel Xeon Gold 5118 (2017) CPU running at 2.30Ghz. The full preprocessing pipeline for the ADNI dataset takes approximately 6 hours at a resolution of $256 \times 256 \times 128$ and 1 hour for $128 \times 128 \times 64$. For the GBM dataset, preprocessing takes roughly 9 hours for $256 \times 256 \times 128$ and 2.5 hours for $128 \times 128 \times 64$. Registering a single volume is very fast, taking roughly 6.85 seconds for $256 \times 256 \times 128$ and 1.12 seconds for $128 \times 128 \times 64$. These low inference costs make the approach practical for real-time inference. We emphasize that MRI images follow standardized protocols and are already reasonably aligned. As a result, the registration requires only a few iterations to converge. In imaging domains without such protocols, the initial misalignment could be larger, consequently requiring more iterations and increasing the computational cost.}
+
+\bc{Following registration, we employed two distinct processing pipelines. For our 2D analysis, we extracted all axial slices containing the primary region of interest (e.g., ventricles in ADNI), a selection guided by the provided ground truth segmentation masks. Each of these 2D intensity slices was then resized to \(256 \times 256\) pixels using cubic interpolation. For our 3D analysis, we used the entire registered volume, resizing each intensity volume to \(128 \times 128 \times 128\) voxels with cubic interpolation. All corresponding segmentation mask volumes were resized using nearest-neighbor interpolation to preserve label integrity.}
+
+The timeline for each trajectory, originally in days and weeks, was scaled to a range between 0 and 1 by dividing by the maximum duration of the respective dataset. For the Starmen dataset, no registration was needed. We employed a two-stage augmentation strategy. During autoencoder pre-training, we used standard image-level augmentations, including flipping, shifting, scaling, and rotation. \bc{However, for the main Flow Matching (FM) training, no image-level augmentation was used. Instead, we performed trajectory augmentation by subsampling. For a given sequence of \(M\) visits, we generated additional training samples by creating all possible contiguous sub-trajectories of shorter lengths, while strictly preserving the temporal order of the images.} 
+
+\bc{We performed a subject-level partition for all datasets to prevent data leakage, ensuring all data from a single subject remained in the same set. For the larger ADNI (317 subjects) and GBM (91 subjects) cohorts, we used a \%70\%10\%/20\% split, resulting in approximately 220/30/67 (train/val/test) subjects for ADNI and 60/8/23 for GBM. For the smaller MS dataset (19 subjects), we performed a 5-fold cross-validation; the results reported correspond to a representative fold with 12 training and 7 test subjects. For each subject, their single 3D volume trajectory was expanded into 20 to 100 2D slice-based trajectories, significantly increasing the number of samples for training.}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Training Details}
+\label{app:training_details}
+
+
+\bc{
+\textbf{Autoencoder Training.} The first stage of our pipeline involves training an autoencoder to learn a compact latent representation of the 2D images. The architecture is based on the U-Net from \citep{dhariwal2021diffusion}, but with the long skip connections between the encoder and decoder removed to ensure a compressed latent bottleneck. The network incorporates residual layers with convolutions and multi-head self-attention layers. The latent space dimension was set to 4096 for clinical datasets and 256 for the Starmen dataset. The model was trained for 100 epochs using a hybrid loss function formulated as $\mathcal{L} = \text{MSE} + 0.5 \cdot (1 - \text{SSIM})$. Upon completion of training, the autoencoder weights were frozen.}
+
+\bc{
+\textbf{Segmentation Network Training.} For downstream tasks requiring biomarker quantification, we trained an auxiliary segmentation network. This network, based on a standard U-Net architecture \citep{isensee2021nnu}, was trained for 100 epochs using a binary cross-entropy loss on the ground truth annotations provided with each dataset. Crucially, the input images for this network were first passed through the complete, pre-trained autoencoder (encoder followed by decoder). This step ensures the segmentation model learns to operate on images that have the same distributional characteristics as our model's generated outputs.}
+
+\textbf{Flow Matching Model Training.} In the second stage, the IMMFM model was trained to learn the progression dynamics directly within the latent space. For each training step, input trajectories were first passed through the frozen encoder to obtain their corresponding latent representations. The IMMFM model was then trained for a longer duration, typically between 350 and 500 epochs. During inference, the trained IMMFM model operates on the latent vectors to produce a forecasted latent state, which is subsequently transformed back into the pixel domain by the pre-trained decoder.
+\bc{
+Key hyperparameters for all models are detailed in Table~\ref{tab:all_params} and ~\ref{tab:3d_all_params} for 2D and 3D models, respectively. Note that we use 8 ViT blocks for the MS dataset and 14 ViT blocks for the GBM and ADNI datasets.}
+
+
+\vspace{0.5cm}
+
+\begin{table}[th]
+\centering
+\caption{\bc{Model Hyperparameters for 2D version}.}
+\label{tab:all_params}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Hyperparameter}         & \textbf{Autoencoder}     & \textbf{Segmentation Net} & \textbf{Flow Regressor} \\
+\midrule
+Model Size                      & $\sim$38M                     & $\sim$3M  & $\sim$40-60M     \\
+Input Channels                  & 1                        & 1                         & -        \\
+Image Size                      & $256 \times 256$         & $256 \times 256$          & 4096                       \\
+Architecture                   & CNN + Attention            & U-Net                    & ViT-based               \\
+Transformer Blocks              & -                        & -                         & 8-14 ViT Blocks           \\
+Skip Connections                & -                        & Yes                       & Yes \\
+ViT Inner Dimension             & -                        & -                         & 512                     \\
+Channels                        &  64                      & 16                         & -            \\
+Channel Multiple                & 2,4,4,4,4,4,4          & 1,2,4,8,16                   & -    \\
+Residual Blocks per Down Block  & 1                      & 2                           & -              \\
+Channels / Attention Heads      & 8                        & -                         & 8                       \\
+Attention Resolution            & 64,32,16,8,4,2,1         & -                         & -            \\
+Dropout                         & 0.0                      & 0.0                       & 0.0                     \\
+Batch Size                      & 24                        & 24                        & 24                      \\
+Epochs                          & 100                       & 150                       & 350--500                \\
+Warmup Epochs                   & 25                       & 25                        & 25                       \\
+Learning Rate                   & $1 \times 10^{-3}$       & $1 \times 10^{-4}$        & $1 \times 10^{-4}$   \\ 
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\vspace{0.5cm}
+
+\begin{table}[th]
+\centering
+\caption{\bc{Model Hyperparameters for 3D version.}}
+\label{tab:3d_all_params}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Hyperparameter}         & \textbf{Autoencoder}     & \textbf{Segmentation Net} & \textbf{Flow Regressor} \\
+\midrule
+Model Size                      & $\sim$45M          & $\sim$5M             & $\sim$75M          \\
+Input Channels                  & 1                           & 1                             & -                           \\
+Input Volume Size               & $128 \times 128 \times 128$  & $128 \times 128 \times 128$  & 131,072                     \\
+Architecture                   & 3D CNN + Attention          & 3D U-Net                       & ViT-based                \\
+Transformer Blocks              & -                           & -                             & 14 ViT Blocks               \\
+Skip Connections                & -                           & Yes                           & Yes                         \\
+ViT Inner Dimension             & -                           & -                             & 512                         \\
+Channels                        &  32                        & 16                         & -            \\
+Channel Multiple                & 2,4,4,8,8                  & 1,2,4,8,16                   & -    \\
+Residual Blocks per Down Block  & 1                           & 2                           & -              \\
+
+Channels / Attention Heads      & 8                           & -                             & 8                           \\
+Attention Resolution            & 64,32,16                    & -                             & -                \\
+Dropout                         & 0.0                         & 0.0                           & 0.0                         \\
+Batch Size                      & 4                           & 4                             & 2                           \\
+Epochs                          & 100                         & 150                           & 350--500                    \\
+Warmup Epochs                   & 25                          & 25                            & 25                          \\
+Learning Rate                   & $2 \times 10^{-4}$          & $2 \times 10^{-4}$            & $1 \times 10^{-5}$          \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Computing Infrastructure and Cost}
+
+All experiments were performed on Snellius, the Dutch national supercomputer. Each training job was allocated a node equipped with one NVIDIA A100 GPU (with 40GB VRAM) and 8 CPU cores. 
+Typical training durations for our primary models on this configuration were as follows:
+\begin{itemize}
+    \item Autoencoder: 12--16 hours.
+    \item Segmentation Network: 6--8 hours.
+    \item IMMFM: 12--18 hours.
+\end{itemize}
+
+In comparison to our proposed models, some baseline methods exhibited greater computational demands. Notably, the ImageFlowNet baseline consistently required a significantly longer training period, taking approximately 2x longer when executed on similar hardware. The total computational resources utilized for developing our models, conducting all experiments, and performing baseline comparisons in this study amounted to approximately 3000 GPU hours. Our implementation primarily relies on PyTorch. \bc{ Note that both 2D and 3D experiments took similar time due to a reduction in dataset samples when treated as a 3D volume.}
+
+
+
+
+\section{Additional Experimental Results}
+\label{app:additional_results}
+
+
+
+\subsection{Ablation Study of Proposed Components}
+\label{app:ablation-study}
+\bc{
+To evaluate our methodological contributions, we conducted an ablation study to isolate and quantify the impact of each component of our proposed IMMFM framework. Table~\ref{tab:ablation-study} shows the performance gains from the following components: the piecewise quadratic conditional path, the data-driven diffusion coefficient, and conditioning on the previous frame. Below, we describe the experimental setup for each ablation:
+\paragraph{Previous-Frame Conditioning.} To assess the importance of immediate temporal context, we trained our simplest model variant, O-IMMFM, without conditioning on the latent representation of the preceding frame. All other aspects of the experimental setup, including architecture and training hyperparameters, remained unchanged.
+\paragraph{Piecewise Quadratic Path.} To measure the benefit of incorporating second-order temporal dynamics, we compared our ODE-based model, O-IMMFM (using the proposed quadratic path,) against a baseline with a conventional linear path that connects consecutive marginals with straight lines. This isolates the performance gain attributable to our novel quadratic path construction.
+\paragraph{Learned Diffusion Coefficient.} To quantify the effect of a learned diffusion term, we compared the full SDE-based model SU-IMMFM against S-IMMFM, which uses a fixed, predefined diffusion schedule. Both variants share identical architectures, isolating the impact of using a data-driven approach to modeling stochasticity.}
+
+\bc{The results of our ablation study highlight the value of each proposed component. Introducing the quadratic path yields the most substantial improvements, increasing Dice Score by up to 3.7\% and PSNR by over 2.0 dB. Similarly, incorporating a learned diffusion coefficient consistently improves performance on the most challenging GBM dataset, notably reducing Hausdorff Distance by over 6.2 pixels and increasing Dice Score by 1.5\%. Finally, conditioning on the previous frame improves performance as well, boosting the Dice Score by up to 2.1\% and PSNR by over 1.0 dB.}
+
+
+
+\begin{table}[H]
+  \centering
+  \caption{\bc{Ablation study results quantifying the contribution of each model component. The table reports the change in performance metrics (averaged over 3 seeds) from our ablation study. Each column represents the performance gain from a specific component.}}
+  \label{tab:ablation-study}
+  % \scriptsize
+  % \setlength{\tabcolsep}{10pt}
+  % \renewcommand{\arraystretch}{0.9}
+  \begin{tabular}{llccc}
+    \multicolumn{5}{c}{} \\
+    \toprule
+    Dataset & Metric & \makecell{Prev. frame conditioning} & \makecell{Quadratic path} & \makecell{Data diffusion} \\
+    \midrule
+    \multirow{5}{*}{ADNI} 
+      & PSNR $\uparrow$ &   1.089 & 1.441  & 0.084 \\
+      & SSIM $\uparrow$ &    0.021 & 0.012  & 0.001 \\
+      & MSE  $\downarrow$ &  0.001 & $>$0.001  & $>$0.001 \\
+      & DSC  $\uparrow$   &  0.021 & 0.027  & 0.002 \\
+      & HD   $\downarrow$ & 1.198 & 2.16 & 0.671 \\
+    \midrule
+    \multirow{5}{*}{Brain MS} 
+      & PSNR $\uparrow$ &  0.940    & 2.098 & 0.146 \\
+      & SSIM $\uparrow$ &  0.032    & 0.015 & 0.000 \\
+      & MSE  $\downarrow$ & 0.000   & $>$0.001 & $>$0.001 \\
+      & DSC  $\uparrow$  & 0.007    & 0.030 & 0.004 \\
+      & HD   $\downarrow$ &0.140  & 0.490 & 0.140 \\
+    \midrule
+    \multirow{5}{*}{Brain GBM} 
+      & PSNR $\uparrow$   & 1.092     & 1.696     & 0.467 \\
+      & SSIM $\uparrow$   & 0.013     & 0.025     & 0.012 \\
+      & MSE  $\downarrow$ & 0.001    & $>$0.001   & $>$0.001 \\
+      & DSC  $\uparrow$   & 0.015     & 0.037     & 0.015 \\
+      & HD   $\downarrow$ & 1.030    & 1.523 & 6.290 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\bc{While global metrics such as SSIM and MSE show minimal changes (e.g., SSIM improves by only 0.01–0.02), this is expected, as they are often saturated due to the already high image reconstruction quality and are less sensitive to localized changes in regions of interest (ROIs). For example, small volumetric changes in structures like the ventricles affect only a small fraction of the image, having negligible influence on overall MSE or SSIM. Since our primary goal is to model clinically relevant regional evolution, improvements in ROI-specific metrics such as Dice and Hausdorff Distance provide stronger evidence of our model's effectiveness.}
+
+
+
+
+
+\subsection{Analysis of Temporal Generalization}
+\label{app:temporal-gen}
+\bc{An important aspect of any forecasting model is understanding how its predictive accuracy changes as the forecast horizon increases. To assess the reliability of our model for both short-term and long-term performance, we evaluate its key metric at various future time points. Fig. \ref{fig:time_vs_performance} illustrates this temporal generalization by plotting Dice score, PSNR, and Hausdorff against the increasing prediction interval, quantifying the expected degradation in accuracy as the model predicts further into the future.}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.98\linewidth]{img/time_vs_perfom.png}
+    \caption{\bc{Performance for increasing forecast horizon for ADNI, MS, and GBM datasets. The error bar represents the average inter-subject variability of the datasets.}}
+    \label{fig:time_vs_performance}
+\end{figure}
+
+\bc{The results show an expected degradation in performance as the forecast horizon extends, with Dice Score and PSNR decreasing while Hausdorff Distance increases. The severity of this degradation differs across datasets; on the ADNI dataset, the Dice Score degrades by approximately $\sim$3\% over three years, while the Brain MS dataset sees a similar drop of $\sim$4\%. However, the Brain GBM dataset exhibits a much sharper decline in performance, with up to $\sim$ 13\%. This is likely due to the difficult and sporadic nature of glioblastoma progression, which is highly unpredictable and challenging to model accurately, particularly with limited training data.} 
+
+
+
+\subsection{Generalization to Volumetric Data}
+\label{app:3d-experiment}
+\bc{To demonstrate the generalization capability of our framework to volumetric data, we conducted our primary experiments on the full 3D clinical datasets. The experimental setup, including dataset partitions and training protocols, remained identical to the 2D experiments. The core architecture of our flow regressor was also unchanged. To handle the volumetric data, we modified the autoencoder and the auxiliary segmentation network by replacing their 2D convolutional layers with their 3D counterparts. Following spatial alignment, the full 3D volumes were directly processed by these models to create and analyze the latent space trajectories. All the evaluation metrics that are defined in \ref{app:evaluation_metrics} were generalized to work on 3D data for computing the performance. More details can be found about data pre-processing and training in \ref{app:data-preprocessing-aug} and \ref{app:training_details}.}
+
+
+
+\begin{table}[h!]
+\centering
+% Updated caption explaining the colors
+\caption{Trajectory forecasting performance of the 3D models. Results are averaged over three runs and \emph{all available timepoints}. Values are presented as Mean, with the subscript in \textcolor{green}{green} indicating inter-subject variability and the superscript in \textcolor{purple}{purple} indicating inter-model variability.}
+\label{tab:3d-result}
+% \scriptsize
+\setlength{\tabcolsep}{15pt}
+% \renewcommand{\arraystretch}{1.2} % Increased for better readability with sub/super-scripts
+\begin{tabular}{llccc}
+\multicolumn{5}{c}{} \\
+\toprule
+Dataset & Metric & \makecell{O-IMMFM} & \makecell{S-IMMFM} & \makecell{SU-IMMFM} \\
+\midrule
+\multirow{5}{*}{ADNI} 
+ & PSNR $\uparrow$ & $41.07_{\textcolor{green}{\pm 2.84}}^{\textcolor{purple}{\pm 0.11}}$ & $40.98_{\textcolor{green}{\pm 2.80}}^{\textcolor{purple}{\pm 0.11}}$ & $41.15_{\textcolor{green}{\pm 2.84}}^{\textcolor{purple}{\pm 0.20}}$ \\[4pt]
+ & SSIM $\uparrow$ & $0.980_{\textcolor{green}{\pm 0.039}}^{\textcolor{purple}{\pm 0.001}}$ & $0.979_{\textcolor{green}{\pm 0.039}}^{\textcolor{purple}{\pm 0.002}}$ & $0.980_{\textcolor{green}{\pm 0.039}}^{\textcolor{purple}{\pm 0.001}}$ \\[4pt]
+ & MSE $\downarrow$ & $0.001_{\textcolor{green}{\pm 0.004}}^{\textcolor{purple}{\pm 0.001}}$ & $0.001_{\textcolor{green}{\pm 0.004}}^{\textcolor{purple}{\pm > 0.001}}$ & $0.001_{\textcolor{green}{\pm 0.004}}^{\textcolor{purple}{\pm 0.000}}$ \\[4pt]
+ & DSC $\uparrow$ & $0.938_{\textcolor{green}{\pm 0.077}}^{\textcolor{purple}{\pm 0.009}}$ & $0.942_{\textcolor{green}{\pm 0.081}}^{\textcolor{purple}{\pm 0.004}}$ & $0.947_{\textcolor{green}{\pm 0.070}}^{\textcolor{purple}{\pm 0.005}}$ \\[4pt]
+ & HD $\downarrow$ & $2.889_{\textcolor{green}{\pm 2.687}}^{\textcolor{purple}{\pm 0.054}}$ & $3.021_{\textcolor{green}{\pm 2.777}}^{\textcolor{purple}{\pm 0.231}}$ & $2.877_{\textcolor{green}{\pm 2.692}}^{\textcolor{purple}{\pm 0.052}}$ \\
+\midrule
+\multirow{5}{*}{Brain GBM} 
+ & PSNR $\uparrow$ & $34.38_{\textcolor{green}{\pm 5.13}}^{\textcolor{purple}{\pm 0.31}}$
+                   & $34.63_{\textcolor{green}{\pm 4.90}}^{\textcolor{purple}{\pm 0.26}}$
+                   & $34.15_{\textcolor{green}{\pm 4.03}}^{\textcolor{purple}{\pm 0.61}}$ \\[4pt]
+                   
+ & SSIM $\uparrow$ & $0.923_{\textcolor{green}{\pm 0.181}}^{\textcolor{purple}{\pm 0.001}}$
+                   & $0.923_{\textcolor{green}{\pm 0.167}}^{\textcolor{purple}{\pm 0.002}}$
+                   & $0.935_{\textcolor{green}{\pm 0.193}}^{\textcolor{purple}{\pm 0.001}}$ \\[4pt]
+ & MSE  $\downarrow$ & $0.001_{\textcolor{green}{\pm 0.001}}^{\textcolor{purple}{\pm >0.001}}$
+                     & $0.001_{\textcolor{green}{\pm 0.001}}^{\textcolor{purple}{\pm >0.001}}$
+                     & $0.001_{\textcolor{green}{\pm 0.001}}^{\textcolor{purple}{\pm >0.001}}$ \\[4pt]
+ & DSC  $\uparrow$ & $0.478_{\textcolor{green}{\pm 0.152}}^{\textcolor{purple}{\pm 0.009}}$
+                   & $0.480_{\textcolor{green}{\pm 0.161}}^{\textcolor{purple}{\pm 0.004}}$
+                   & $0.489_{\textcolor{green}{\pm 0.150}}^{\textcolor{purple}{\pm 0.005}}$ \\[4pt]
+ & HD   $\downarrow$ & $127.61_{\textcolor{green}{\pm 28.19}}^{\textcolor{purple}{\pm 2.054}}$
+                     & $124.40_{\textcolor{green}{\pm 29.91}}^{\textcolor{purple}{\pm 1.231}}$
+                     & $121.11_{\textcolor{green}{\pm 27.89}}^{\textcolor{purple}{\pm 1.520}}$ \\
+
+% \midrule
+% \multirow{1}{*}{Brain GBM} 
+%  & Metric & - & - & - \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Our results in Table~\ref{tab:3d-result} show that the 3D models achieve a notable improvement in forecasting accuracy when compared to their 2D counterparts in Table~\ref{tab:forecasting}. For the ADNI dataset, the SU-IMMFM variant shows marked improvements across the board: the Dice Similarity Coefficient (DSC) increases from 0.920 to 0.947 (an \emph{improvement of 2.9\%}), the PSNR rises from 37.52 to 41.15, and the Hausdorff Distance drops significantly from 6.50 to 2.88.
+
+A similar trend is observed for the Brain GBM dataset, where the SU-IMMFM model improves the DSC from 0.460 to 0.489, a more pronounced \emph{increase of 6.3\%}, and reduces the Hausdorff Distance from 135.08 to 121.11. Across both datasets, not only did the average performance improve, but the inter-subject variability (i.e., the standard deviation) also decreased across most metrics, indicating more consistent predictions.
+
+This performance gain can be attributed to the 3D autoencoder's ability to leverage inter-slice spatial context. By processing the entire volume, it learns a richer latent representation that encodes the full 3D anatomical structure. This is crucial for accurately modeling volumetric, disease-related changes, such as ventricular enlargement in ADNI or the complex, infiltrative growth patterns of tumors in GBM, rather than treating them as disconnected 2D area changes. It should be noted that the Brain MS dataset was excluded from the 3D experiments, as its limited size was insufficient for effectively training the higher-capacity 3D models.
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.95\linewidth]{img/starmen_large.png}
+    \caption{Trajectory simulation on Starmen dataset. The conditioning frame is marked with green, and the reference starting frame is marked with blue. From top to bottom blocks: \emph{Hand-downward motion, Hand-upward motion, Static}.}
+    \label{fig:starman_large}
+\end{figure}
+\section{Additional Methodological Details}
+\label{app:additional_method}
+
+
+\subsection{ADNI Dataset}
+
+
+\subsubsection{Measuring Overlap}\label{app:ovl}
+To quantitatively assess the separation between our AD and CN populations, we fit Gaussians to the ventricular area estimates and measure the overlap between their respective distributions using the Overlap Coefficient (OVL) \citep{inman1989}. For two Gaussian distributions with means $\mu_1$, $\mu_2$ and standard deviations $\sigma_1$, $\sigma_2$, when the variances are unequal, the calculation must account for the two intersection points where the probability density functions meet. The intersection points $(c_1, c_2)$ are determined by:
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.98\linewidth]{img/progression_app_rebuttal_update.png}
+    \caption{\bc{Additional Visual comparison of forecasting results on the ADNI ($\sim$3yr), MS ($\sim$3yr), and GBM ($\sim$1yr) datasets. For each dataset, the first row displays our model's forecasted image. The second row shows the corresponding pixel-wise difference map between our forecast and the ground truth.}}
+    \label{fig:all_traj_appendix}
+\end{figure}
+
+
+\begin{equation}
+(c_1, c_2) = \frac{\mu_1\sigma_2^2 - \mu_2\sigma_1^2 \pm \sigma_1\sigma_2\sqrt{(\mu_1-\mu_2)^2 + (\sigma_2^2-\sigma_1^2)\ln(\sigma_2^2/\sigma_1^2)}}{\sigma_2^2-\sigma_1^2}
+\end{equation}
+
+The overlap coefficient is then calculated as:
+
+\begin{equation}
+\text{OVL} = [1-F_1(c_1)+F_2(c_1)]-[F_2(c_2)-F_1(c_2)]
+\end{equation}
+
+where $F_1$ and $F_2$ are the cumulative distribution functions of the respective Gaussian distributions. When both distributions have equal variance, the OVL simplifies to $2\Phi(-|\mu_1-\mu_2|/\sqrt{2\sigma^2})$, where $\Phi$ is the standard normal CDF. This value ranges from 0 (completely separated distributions) to 1 (identical distributions), providing an intuitive measure of classification difficulty \citep{reiser1999}.
+
+
+
+
+
+
+\subsubsection{Classification Methodology}\label{app:classification_details}
+
+We performed a binary classification to differentiate Alzheimer's Disease (AD) from Cognitively Normal (CN) subjects, leveraging the normalized ventricular area as a key biomarker. The distinct distributional characteristics of this biomarker between AD and CN populations, which can be analyzed by fitting Gaussian models, motivate its use for this classification task.
+
+The specific feature utilized for classification is the normalized ventricular area, evaluated for each subject in the main test set at two distinct timepoints:
+\begin{itemize}
+    \item An early observed timepoint, $t_{\text{second}}$ (corresponding to their second clinical visit).
+    \item A future timepoint, $t_{\text{last}}$ (normalized time $t=1$, approximately 36 months from baseline), with the ventricular area forecasted from our IMMFM model's predictions.
+\end{itemize}
+
+
+
+For this specific classification experiment, the main test set was further randomly partitioned to create internal ``threshold-training'' and ``threshold-evaluation'' subsets. To assess the sensitivity of our classification results to the size of these internal partitions, we explored several split ratios. Specifically, we used proportions of $25\%/75\%, 50\%/50\%,$ and $75\%/25\% $ for allocating main test set subjects to the threshold-training versus threshold-evaluation subsets, respectively. For each of these configurations, this partitioning ensured that the determination of the optimal classification threshold and its subsequent performance assessment were conducted on entirely separate (non-overlapping)  subsets.
+
+\begin{table}[ht]
+\label{app:tab_adni_classification}
+\centering
+\caption{Classification Results for ADNI on test set with varying split-ratio}
+\begin{tabular}{ccccc}
+\hline
+\textbf{Train/Test} & \textbf{Second Timepoint} & \textbf{Last Timepoint*}&\textbf{Acc. Gain}& \\ \hline 
+ % 25/75 \%  & 67.9\%  & 73.3\%    &  5.4\%         \\ \hline
+50/50  \%  &  67.5 \%   & 75.1\%      & 8.6\%               \\ \hline
+75/25 \%    & 71.7\%     & 80.8\%            & 9.1\%          \\
+\bottomrule
+Average          & 69.6\%            &  78.0 &    8.4\%     \\ \hline
+\end{tabular}
+
+\end{table}
+
+
+% \begin{table*}
+%   \centering
+%   \caption{Trajectory forecasting performance. Results are averaged over three runs and \emph{all available timepoints}. The $\pm$ values denote the 95\% confidence interval across test subjects, reflecting inter-subject variability.}
+%   \label{tab:forecasting}
+%   \small
+%   \setlength{\tabcolsep}{4.5pt}
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tabular}{llcccccccc}
+%     \toprule
+%     Dataset & Metric & ImageFlowNet & I2SB & TFM  & L-MMFM & M-MMFM & O-IMMFM & S-IMMFM & SU-IMMFM\\
+%     \midrule
+% % =====================  Starmen  =====================
+%       Starmen & MSE  $\downarrow$ & 0.0261$\pm$0.005 & 0.0572$\pm$0.092 & 0.0230$\pm$0.022  & 0.0114$\pm$0.032 & 0.0116$\pm$0.035 & \textbf{0.0087$\pm$0.002} & 0.0088$\pm$0.030 & 0.0089$\pm$0.052  \\
+      
+%     \midrule
+% % =====================  ADNI  ========================
+%     \multirow{5}{*}{ADNI}  
+%  & PSNR $\uparrow$ & 36.425$\pm$4.377 & 35.553$\pm$4.888 & 36.007$\pm$9.976 &  36.071$\pm$5.981 & 36.019$\pm$6.088 & 37.512$\pm$5.562 & 37.434$\pm$5.505 & \textbf{37.518$\pm$5.555}\\
+%  & SSIM $\uparrow$ & 0.944$\pm$0.045 & 0.965$\pm$0.035 & 0.934$\pm$0.263 &  0.960$\pm$0.097 & 0.962$\pm$0.097 & 0.972$\pm$0.147 & 0.972$\pm$0.122  & \textbf{0.972$\pm$0.102} \\
+%  & MSE  $\downarrow$ & 0.004$\pm$0.005 & 0.005$\pm$0.007 & 1.430$\pm$0.007 &  0.002$\pm$0.015 & 0.002$\pm$0.017 & 0.002$\pm$0.017 & \textbf{0.002$\pm$0.012}  & 0.002$\pm$0.015\\
+%  & DSC  $\uparrow$ & 0.913$\pm$0.383 & 0.910$\pm$0.368 & 0.889$\pm$0.425 & 0.909$\pm$0.459 & 0.902$\pm$0.338 & 0.916$\pm$0.338 & 0.915$\pm$0.348  & \textbf{0.917$\pm$0.353}\\
+%  & HD   $\downarrow$ & 10.704$\pm$119.89 & 8.778$\pm$116.29 & 11.00$\pm$52.44 &  8.890$\pm$66.43& 11.778$\pm$62.53  & 6.732$\pm$62.11  & 7.169$\pm$73.86 & \textbf{6.498$\pm$56.28}\\
+%     \midrule
+  
+% % =====================  Brain MS  ====================
+% \multirow{5}{*}{Brain MS}  
+%   & PSNR $\uparrow$ & 31.712$\pm$4.541 & 32.773$\pm$0.633 & 31.44$\pm$6.78 & 34.572$\pm$8.043 & 33.745$\pm$8.237 & 36.670$\pm$8.364 & 36.626$\pm$8.148 & \textbf{36.672$\pm$8.351} \\
+%   & SSIM $\uparrow$ & 0.860$\pm$0.117 & 0.929$\pm$0.069 & 0.881$\pm$0.134 & 0.930$\pm$0.147 & 0.923$\pm$0.147 & 0.945$\pm$0.109 & 0.945$\pm$0.109 & \textbf{0.945$\pm$0.107} \\
+%   & MSE  $\downarrow$ & 0.014$\pm$0.025 & 0.005$\pm >$0.0001 & 1.369$\pm >$0.0001 & 0.001$\pm$0.002 & 0.002$\pm$0.002 & \textbf{0.001$\pm$0.002}  & \textbf{0.001$\pm$0.002} & \textbf{0.001$\pm$0.002}\\
+%   & DSC  $\uparrow$ & 0.369$\pm$0.561 & 0.433$\pm$0.556 & 0.513$\pm$0.544 &  0.695$\pm$0.236 & 0.661$\pm$0.278 & 0.725$\pm$0.248 & 0.724$\pm$0.248  & \textbf{0.727$\pm$0.298}\\
+%   & HD   $\downarrow$ & 63.238$\pm$197.21 & 47.003$\pm$137.56 & 27.709$\pm >$0.0001  & \textbf{20.571$\pm$26.93} & 24.943$\pm$23.32 & 21.057$\pm$27.73 & 21.165$\pm$27.55 & 21.030$\pm$27.72\\
+%  \midrule
+
+% % =====================  Brain GBM  ===================
+%     \multirow{5}{*}{Brain GBM}
+%       & PSNR $\uparrow$ & \textbf{35.86$\pm$0.30} & 35.49$\pm$0.42 & 27.471$\pm$31.03 & 30.083$\pm$15.77 & 30.166$\pm$17.04 & 31.779$\pm$13.53  & 31.475$\pm$13.52 & 31.942$\pm$13.78 \\
+%       & SSIM $\uparrow$ & \textbf{0.940$\pm$0.005} & 0.940$\pm$0.002 & 0.725$\pm$0.909 & 0.890$\pm$0.278  & 0.900$\pm$0.278 & 0.915$\pm$0.268  & 0.915$\pm$0.517 & 0.927$\pm$0.844 \\
+%       & MSE  $\downarrow$ & \textbf{0.001$\pm$0.002} & 0.002$\pm$0.002 & 0.003$\pm$0.002 & 0.001$\pm$0.002  & 0.001$\pm$0.005 & \textbf{0.001$\pm$0.002}  & \textbf{0.001$\pm$0.002} & \textbf{0.001$\pm$0.002}\\
+%       & DSC  $\uparrow$ & 0.302$\pm$0.045 & 0.253$\pm$0.002 & 0.339$\pm$0.700 & 0.420$\pm$0.698  & 0.411$\pm$0.698 & 0.447$\pm$0.690 & 0.449$\pm$0.685 & \textbf{0.464$\pm$0.683}\\
+%       & HD   $\downarrow$ & 198.19$\pm$19.33 & 189.61$\pm$18.98 & 271.53$\pm$37.26 & 142.883$\pm$192.45  & 143.029$\pm$196.53 & 141.36$\pm$192.0 & 141.37$\pm$187.34 & \textbf{135.08$\pm$184.86}\\
+%     \bottomrule
+%   \end{tabular}}
+% \end{table*}
+
+
+
+While the analysis of distributional overlap (as detailed in Appendix~\ref{app:ovl}) involves identifying intersection points of fitted Gaussian distributions to understand theoretical separability, for the practical task of classifying individual subjects, we determined the decision threshold empirically to optimize predictive performance. 
+
+Using data solely from the ``threshold-training'' subset, an optimal decision threshold for the normalized ventricular area was identified. This was achieved by employing Receiver Operating Characteristic (ROC) curve analysis. The threshold selected was the one that maximized the accuracy in distinguishing AD from CN subjects. The classification threshold learned from the ``threshold-training'' subset was then applied to the ``threshold-evaluation'' subset to assign AD or CN labels to its subjects.
+
+The detailed classification outcomes for different split ratios are presented in Table~\ref{app:tab_adni_classification}.
+
+\begin{figure}[t!]
+\includegraphics[width=0.98\linewidth]{img/box_plot_adni.png}
+            \caption{Distribution of ventricular region over time for Alzheimer's (AD) and Cognitively Normal (CN), binned into four discrete time points.}
+            \label{fig:ad_cn_dist_full}
+                \label{fig:enter-label}
+    \end{figure}
+
+
+
+\subsection{\textcolor{black}{On the Calibration of Learned Diffusion}}
+\label{app:calibration_diffusion}
+
+\textcolor{black}{In Section \ref{sec:matching_objective}, we introduced a data-driven diffusion coefficient, $g_\theta(t,x,c)$, which is trained to match the squared error of the predictive construction. While traditional uncertainty quantification often evaluates calibration to yield explicit predictive variances or confidence intervals in the observation domain, the learned diffusion term in the IMMFM framework serves a structurally different purpose. Rather than acting as a standalone, classical probabilistic uncertainty estimate, $g_\theta$ is learned jointly with the drift to actively drive the SDE trajectory. It functions as a dynamic, directional corrective term that modulates the stochasticity of the latent-space state updates to guide the generated trajectory toward better reconstruction.}
+
+\textcolor{black}{Furthermore, this diffusion coefficient operates entirely within a high-dimensional, compressed latent space (e.g., $d=4096$ for the clinical cohorts). Because this latent manifold is optimized for dense image representation rather than explicit feature disentanglement, the latent axes are not independently, physically interpretable. Consequently, a unit of variance in this latent space does not translate to an interpretable spatial or anatomical confidence interval in the final pixel or voxel domain. Standard calibration analyses---which rely on mapping predictive variance to observable, physical prediction errors---are therefore not directly applicable to this latent corrective mechanism.}
+
+\textcolor{black}{As such, we assess the validity and quality of the learned diffusion term through its downstream empirical impact rather than through classical calibration metrics. If the learned diffusion $g_\theta$ did not accurately capture the structural uncertainty of the trajectory, it would inject uncalibrated noise and degrade the generated synthesis. Instead, as demonstrated in our ablation study (Appendix \ref{app:ablation-study}), incorporating the data-driven diffusion coefficient systematically improves predictive fidelity. This is most notable in highly stochastic datasets such as the Brain GBM cohort, where it significantly reduces the Hausdorff distance and increases the Dice score. This consistent reduction in downstream forecasting error confirms that the learned term is effectively aligned with the model's prediction error and successfully regularizes the learned dynamics.}
+
+\section{Limitations and Future Directions}
+\label{app:limitation_future_work}
+
+\textbf{Limitations.} \textcolor{black}{The use of a quadratic interpolation scheme introduces a specific inductive bias that can be characterized as a low-pass filtering effect. Because the conditional path is constructed as a piecewise-quadratic segment, the velocity evolution (Eq.~\ref{eq:spline_path}) is linear, modeling local dynamics as smooth trajectories with stable curvature. While this construction inherently limits the model's ability to capture "jerky" transitions or high-frequency oscillations (non-zero third derivatives) between sparse observations, this behavior functions as a critical implicit regularization rather than a purely restrictive drawback. In chaotic or highly stochastic regimes, learning a continuous probability flow from sparse data is frequently ill-posed; by providing a smooth target path, we ensure the resulting vector field maintains the Lipschitz continuity required for stable flow matching and avoid the numerical instabilities or overfitting typically associated with the Runge phenomenon \citep{lipman2022flow}. Furthermore, this smoothing does not imply that complex dynamical variations are discarded. Within the SU-IMMFM framework, we hypothesize a functional decomposition where the quadratic drift captures the tractable mean trend, while the "missed" chaotic volatility is absorbed and represented by the learned diffusion component $g_\theta$. In this sense, the deviation of the true chaotic path from the smooth quadratic target is explicitly accounted for by the stochastic layer, allowing the model to maintain global tractability without sacrificing the representation of local volatility.}
+
+While IMMFM demonstrates robust performance, its accuracy can be influenced by severe, systematic artifacts in input data, and its predictive scope is shaped by the diversity of trajectories within the training set. These considerations motivate several methodological extensions to enhance the framework's power and versatility.
+
+\textbf{Future Directions.} A primary direction is to learn more informative latent representations. This can be achieved by developing \emph{temporally aware autoencoders}, which move beyond processing snapshots independently and instead employ ordering-aware training objectives or architectural priors to ensure latent space continuity and coherence \citep{yang2023self, blattmann2023align}. Such representations would provide a stronger foundation for several advanced applications. One is enriching the dynamics via \emph{multi-modal conditioning}, allowing the model to integrate heterogeneous data like static covariates or external signals to learn more disentangled and explanatory trajectories \citep{shaik2024survey, wu2024q}. Another is extending the framework's generative capabilities towards \emph{causal and counterfactual reasoning}. By integrating principles of causal representation learning, the model could simulate trajectories under hypothetical interventions, transforming it from a prognostic tool into a system for decision support \citep{von2024causal}.
+
+
+\textcolor{black}{Finally, to improve plausibility and generalization in data-scarce settings, the model can be fortified with \emph{domain-specific knowledge}. In domains with well-established governing equations, integrating frameworks from scientific machine learning, such as Physics-Informed Neural Networks (PINNs), can strictly constrain the learned dynamics \citep{qian2025physics, cuomo2023scientific}. However, we note that in complex clinical contexts such as Alzheimer's disease progression, universally accepted physical laws might not exist. In such cases, this direction is more speculative; rather than enforcing strict physical laws, the framework could instead be adapted to incorporate approximate mechanistic priors, such as network diffusion models of pathology spread, to mildly regularize the data-driven trajectories.}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
