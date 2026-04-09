@@ -221,41 +221,46 @@
       <thead>
         <tr>
           <th>Dataset</th>
-          <th>Component gain summary</th>
+          <th>Prev-frame conditioning</th>
+          <th>Quadratic path</th>
+          <th>Data diffusion</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>ADNI</td>
-          <td>Quadratic path: +0.027 Dice, +1.441 PSNR; Previous-frame context: +0.021 Dice; Data diffusion: consistent but smaller gains.</td>
+          <td>+0.021 Dice, +1.089 PSNR</td>
+          <td>+0.027 Dice, +1.441 PSNR</td>
+          <td>+0.002 Dice, +0.084 PSNR</td>
         </tr>
         <tr>
           <td>Brain MS</td>
-          <td>Quadratic path: +0.030 Dice and +2.098 PSNR; context and diffusion provide additional improvements.</td>
+          <td>+0.007 Dice, +0.940 PSNR</td>
+          <td>+0.030 Dice, +2.098 PSNR</td>
+          <td>+0.004 Dice, +0.146 PSNR</td>
         </tr>
         <tr>
           <td>Brain GBM</td>
-          <td>Quadratic path: +0.037 Dice; learned diffusion: +0.015 Dice and strong HD improvement (−6.290).</td>
+          <td>+0.015 Dice, +1.092 PSNR</td>
+          <td>+0.037 Dice, +1.696 PSNR</td>
+          <td>+0.015 Dice, +0.467 PSNR, −6.290 HD</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="columns is-multiline" style="margin-top:0.6rem;">
-      <div class="column is-half">
-        <div class="figure-card">
-          <img src="./figures/fig6.png" alt="Supplementary analysis highlighting model robustness across extended forecasting horizons and multiple cohorts">
-          <div class="figure-caption"><strong>Figure 6.</strong> Supplementary robustness evidence, including behavior across extended horizons and cohorts.</div>
-        </div>
-      </div>
-      <div class="column is-half">
-        <div class="content">
-          <h3 class="title is-6">Temporal generalization and 3D extension</h3>
-          <p>
-            Appendix analyses show expected degradation with increasing forecasting horizon, with the steepest drop in the most unpredictable GBM trajectories.
-            Additional 3D experiments show stronger volumetric forecasting versus 2D, including ADNI Dice improvements from 0.920 to 0.947 and major Hausdorff-distance reductions.
-          </p>
-        </div>
-      </div>
+    <div class="figure-card" style="margin-top:0.8rem;">
+      <img src="./figures/fig6.png" alt="Supplementary analysis highlighting model robustness across extended forecasting horizons and multiple cohorts">
+      <div class="figure-caption"><strong>Figure 6.</strong> Supplementary robustness evidence, including behavior across extended horizons and cohorts.</div>
+    </div>
+    <div class="content">
+      <h3 class="title is-6">Temporal generalization and 3D extension</h3>
+      <p>
+        Appendix analyses show expected degradation with increasing forecasting horizon, with the steepest drop in the most unpredictable GBM trajectories.
+        Additional 3D experiments show stronger volumetric forecasting versus 2D, including ADNI Dice improvements from 0.920 to 0.947 and major Hausdorff-distance reductions.
+      </p>
+      <p>
+        These analyses support the main paper narrative: IMMFM improves short-horizon fidelity while remaining useful over longer horizons, and the gains transfer from 2D slices to full 3D volumetric disease progression modeling.
+      </p>
     </div>
   </div>
 </section>
