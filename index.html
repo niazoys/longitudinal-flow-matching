@@ -17,6 +17,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/bulma-carousel.min.js"></script>
   <script defer src="./static/js/bulma-slider.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     .figure-card {
       border: 1px solid #e8e8e8;
@@ -36,7 +38,11 @@
       padding: 0.85rem 1rem;
       border-top: 1px solid #ededed;
       font-size: 0.95rem;
-      text-align: center;
+      text-align: justify;
+    }
+    .content p,
+    .content li {
+      text-align: justify;
     }
     .section-tight {
       padding-top: 1.8rem;
@@ -62,25 +68,35 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-2 publication-title">Longitudinal Flow Matching for Trajectory Modeling</h1>
-          <div class="is-size-5 publication-authors">
-            <span class="author-block">Mohammad Mohaiminul Islam,</span>
-            <span class="author-block">Thijs P. Kuipers,</span>
-            <span class="author-block">Sharvaree Vadgama,</span>
-            <span class="author-block">Coen de Vente,</span>
-            <span class="author-block">Afsana Khan,</span>
-            <span class="author-block">Clara I. Sánchez,</span>
-            <span class="author-block">Erik J. Bekkers</span>
+          <h1 class="title is-1 has-text-weight-bold publication-title" style="color: #3b3b3b; margin-bottom: 1.5rem;">Longitudinal Flow Matching for Trajectory Modeling</h1>
+          
+          <div class="is-size-4 publication-authors" style="margin-bottom: 0.5rem;">
+            <span class="author-block"><a href="https://niazoys.github.io" style="color: #179eca; text-decoration: none;">Mohammad Mohaiminul Islam</a>,</span>
+            <span class="author-block"><a href="https://pure.amsterdamumc.nl/en/persons/thijs-kuipers-3/" style="color: #179eca; text-decoration: none;">Thijs P. Kuipers</a>,</span>
+            <span class="author-block"><a href="https://sharvaree.github.io/" style="color: #179eca; text-decoration: none;">Sharvaree Vadgama</a>,</span>
+            <span class="author-block"><a href="https://coendevente.com/" style="color: #179eca; text-decoration: none;">Coen de Vente</a>,</span>
+            <span class="author-block"><a href="https://sites.google.com/site/afsanakhancse" style="color: #179eca; text-decoration: none;">Afsana Khan</a>,</span>
+            <span class="author-block"><a href="https://qurai.amsterdam/researcher/clarisa-sanchez/" style="color: #179eca; text-decoration: none;">Clara I. Sánchez</a>,</span>
+            <span class="author-block"><a href="https://ebekkers.github.io/" style="color: #179eca; text-decoration: none;">Erik J. Bekkers</a></span>
           </div>
+
+          <div class="is-size-5 publication-affiliations" style="color: #555555; margin-bottom: 0.5rem;">
+            <span class="affiliation-block">University of Amsterdam &nbsp;&#xb7;&nbsp; Amsterdam UMC &nbsp;&#xb7;&nbsp; Maastricht University</span>
+          </div>
+
+          <div class="is-size-5 has-text-weight-bold publication-venue has-text-centered" style="color: #444444; margin-bottom: 1.5rem; text-align: center;">
+            <center> AISTATS 2026 (Spotlight)</center>
+          </div>
+
           <div class="publication-links">
             <span class="link-block">
-              <a href="./paper/Longitudinal_Flow_Matching.pdf" class="external-link button is-normal is-rounded is-dark">
+              <a href="https://arxiv.org/abs/2510.03569" class="external-link button is-normal is-rounded is-dark" style="background-color: #363636; transition: all 0.2s;">
                 <span class="icon"><i class="fas fa-file-pdf"></i></span>
-                <span>Paper</span>
+                <span>arXiv</span>
               </a>
             </span>
-            <span class="link-block">
-              <a href="https://github.com/niazoys/longitudinal-flow-matching" class="external-link button is-normal is-rounded is-dark">
+            <span class="link-block" style="margin-left: 5px;">
+              <a href="https://github.com/niazoys/longitudinal-flow-matching" class="external-link button is-normal is-rounded is-dark" style="background-color: #363636; transition: all 0.2s;">
                 <span class="icon"><i class="fab fa-github"></i></span>
                 <span>Code</span>
               </a>
@@ -131,8 +147,9 @@
    
     <div class="content">
       <p>
-        Generative modeling of disease progression from longitudinal neuroimaging requires learning continuous, subject-specific trajectories from data that are high-dimensional, irregularly sampled, and highly sparse (e.g., occasional clinical visits). Standard pairwise transition models fall short in this setting because they do not ensure global trajectory consistency across multiple timepoints. We present <strong>Interpolative Multi-Marginal Flow Matching (IMMFM)</strong>, a novel stochastic generative framework that leverages a piecewise-quadratic interpolation path as a smooth target for flow matching and jointly optimizes a data-driven uncertainty diffusion coefficient. We theoretically establish the equilibrium allowing joint training of the drift and diffusion scale. 
+        Generative modeling of disease progression from longitudinal neuroimaging requires learning continuous, subject-specific trajectories from data that are high-dimensional, irregularly sampled, and highly sparse (e.g., occasional clinical visits). Standard pairwise transition models fall short in this setting because they do not ensure global trajectory consistency across multiple timepoints. We present <strong>Interpolative Multi-Marginal Flow Matching (IMMFM)</strong>, a novel stochastic generative framework that leverages a piecewise-quadratic interpolation path as a smooth target for flow matching and jointly optimizes a data-driven uncertainty diffusion coefficient.
       </p>
+     
     </div>
    
    <img src="./figures/fig1.png" alt="Figure 1: IMMFM pipeline with sparse observations and trajectory forecasting">
@@ -143,54 +160,70 @@
 
 <section class="section section-tight">
   <div class="container is-max-desktop">
-    <h2 class="title is-4">Methodology & Innovations</h2>
+    <h2 class="title is-4"><center>Methodology & Innovations</center></h2>
     <div class="content">
       <p>
         Our generative framework models trajectories as an <em>Itô stochastic differential equation</em> (SDE), simultaneously learning a transport flow and stochastic deviations to generate medically realistic progression. 
       </p>
 
-      <div class="box" style="border-left: 5px solid #ff3860; background-color: #fff5f7; margin-bottom: 1.5rem;">
-        <h3 class="title is-5" style="color: #ff3860; margin-bottom: 0.5rem;">1. MMOT as Spatial Diffeomorphic Registration</h3>
-        <p>
-          We uniquely formulate the <span class="has-text-danger has-text-weight-semibold">Multi-Marginal Optimal Transport (MMOT)</span> problem not as a naive pixel-matching task, but as a sequential <strong>spatial alignment and diffeomorphic registration</strong> problem. By finding smooth, invertible transformations that directly map one timepoint's image onto the next, we guarantee a topologically sound pathway prior for the continuous flow model right at the dataset foundation.
+      <div class="box" style="border-left: 5px solid #8732f5; background-color: #faf5ff; margin-bottom: 1.5rem;">
+        <h3 class="title is-5" style="color: #8732f5; margin-bottom: 0.5rem;">1. MMOT as Spatial Diffeomorphic Registration</h3>
+        <p class="has-text-justified">
+          We uniquely formulate the <span class="has-text-weight-semibold" style="color: #8732f5;">Multi-Marginal optimal transport (MMOT)</span> problem not as a naive pixel-matching task, but as a sequential <strong style="color: #8732f5;">spatial alignment and diffeomorphic registration</strong> problem. By finding smooth, invertible transformations that directly map one timepoint's image onto the next, we guarantee a topologically sound pathway prior for the continuous flow model right at the dataset foundation.
         </p>
       </div>
       
       <div class="box" style="border-left: 5px solid #00d1b2; background-color: #f5fcfb;">
         <h3 class="title is-5" style="color: #00d1b2; margin-bottom: 0.5rem;">2. Piecewise-Quadratic Conditional Path</h3>
-        <p>
-          Unlike simple linear multi-marginal interpolation, we create a <span class="has-text-primary has-text-weight-semibold">quadratic velocity formulation</span> connecting sequential time points conditioned on previous steps. This ensures a continuously smooth stochastic dynamic target for the flow.
+        <p class="has-text-justified">
+          Unlike simple linear multi-marginal interpolation that creates discontinuous velocity fields, we construct a <span class="has-text-primary has-text-weight-semibold">quadratic velocity formulation</span> that smoothly blends velocities between consecutive trajectory segments. The mean path incorporates both current segment velocity and anticipated velocity from the next segment, with time-dependent blending that creates smooth transitions. This approach exhibits a beneficial low-pass filtering effect that ensures Lipschitz continuity required for stable flow matching training, effectively regularizing against ill-posed vector fields in sparse data regimes.
         </p>
       </div>
 
       <div class="box" style="border-left: 5px solid #3273dc; background-color: #f0f8ff;">
-        <h3 class="title is-5" style="color: #3273dc; margin-bottom: 0.5rem;">3. Uncertainty as a Directional Corrective Term</h3>
-        <p>
-          Rather than predicting classical variances or calibration confidence intervals, IMMFM learns a high-dimensional <span class="has-text-info has-text-weight-bold">directional corrective diffusion coefficient</span>. Jointly optimized with the drift, it is explicitly regressed to the squared prediction error, operating deep inside a 4096-dimensional latent space. It actively guides the SDE trajectory to drastically cut boundary errors in highly stochastic settings.
+        <h3 class="title is-5" style="color: #3273dc; margin-bottom: 0.5rem;">3. Learned Uncertainty as Trajectory Correction</h3>
+        <p class="has-text-justified">
+          Rather than predicting classical variances or calibration confidence intervals, IMMFM learns a high-dimensional <span class="has-text-weight-bold" style="color: #3273dc;">directional corrective diffusion coefficient</span>. This term operates in latent space and serves as part of the prediction mechanism rather than a separate uncertainty estimate. Jointly optimized with the drift via our theoretical equilibrium condition, it is explicitly regressed to the squared prediction error and dynamically guides the SDE trajectory toward better reconstruction.
+        </p>
+        <p class="has-text-justified">
+          <strong style="background: linear-gradient(90deg, #ff3860, #8732f5, #3273dc, #00d1b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">Theoretical Guarantee:</strong> We prove that learning this uncertainty term does not bias the drift learning—the stationary points remain identical to the drift-only case. This allows stable joint optimization where the uncertainty adaptively corrects for local prediction errors while preserving the underlying trajectory dynamics.
         </p>
       </div>
 
       <p>
-        Depending on the computational budget and physiological stochasticity, the framework acts as a versatile suite. For smoother, deterministic motions (like limb kinematics), our <strong>ODE variant (O-IMMFM)</strong> naturally excels. Conversely, for highly volatile tumor progressions, the full <strong>Stochastic SU-IMMFM formulation</strong> is deployed to effectively absorb chaotic volatility.
+        Depending on the computational budget and physiological stochasticity, the framework acts as a versatile suite. For smoother, deterministic motions (like limb kinematics in the Starmen dataset), our <strong>ODE variant (O-IMMFM)</strong> naturally excels by focusing computational resources on drift learning. Conversely, for highly volatile progressions like tumor growth (GBM dataset), the full <strong>Stochastic SU-IMMFM formulation</strong> is deployed where the learned diffusion component effectively captures chaotic volatility that the smooth quadratic drift cannot model.
       </p>
     </div>
-  
-    <img src="./figures/fig2.png" alt="Figure 2: IMMFM tracking on S-shaped and sigma-shaped synthetic trajectories">
-    <div class="figure-caption"><strong>Figure 2.</strong> Evaluation on fast-changing, crossing synthetic distributions demonstrates how IMMFM significantly outperforms baseline flow models, effectively tracking complex curvatures exactly because of the quadratic flow correction.</div>
   </div>
 </section>
 
 <section class="section section-tight" style="background-color: #fafafa;">
   <div class="container is-max-desktop">
-    <h2 class="title is-4">Results: Synthesis, Stability, and Insight</h2>
+    <h2 class="title is-4"><center>Results: Synthesis, Stability, and Insight</center></h2>
+
+    <!-- Figure 2 - Synthetic Validation -->
+    <div style="margin-bottom: 2rem;">
+      <h3 class="title is-5">Synthetic Trajectory Validation</h3>
+      <div class="content">
+        <p>
+          We first validate IMMFM on challenging synthetic datasets with known ground truth dynamics. The experiments involve rapidly evolving distributions with complex curvatures and crossing trajectories that stress-test the model's ability to maintain trajectory coherence.
+        </p>
+      </div>
+      <img src="./figures/fig2.png" alt="Figure 2: IMMFM tracking on S-shaped and sigma-shaped synthetic trajectories">
+      <div class="figure-caption">
+        <strong>Figure 2.</strong> <strong>Synthetic trajectory validation on fast-changing distributions:</strong> We test on S-shaped (left) and sigma-shaped (right) trajectories where point clouds evolve through complex geometric transformations. The datasets challenge models with rapid directional changes and distribution crossings. IMMFM (red) significantly outperforms standard flow matching baselines (blue), demonstrating superior tracking of complex curvatures. The improvement stems directly from our quadratic velocity formulation that anticipates future trajectory segments, enabling smooth navigation through geometric complexity that defeats linear interpolation methods.
+      </div>
+    </div>
+
     <div class="content">
       <p>
-        We validated IMMFM thoroughly across multiple challenging high-dimensional datasets including Alzheimer's (ADNI), Multiple Sclerosis (Brain MS), Glioblastoma (GBM), and the baseline Starmen dataset. IMMFM demonstrated state-of-the-art capability in structural synthesis.
+        Following synthetic validation, we evaluated IMMFM across multiple challenging high-dimensional neuroimaging datasets including Alzheimer's Disease Neuroimaging Initiative (ADNI), Multiple Sclerosis (Brain MS), Glioblastoma (GBM), and the baseline Starmen dataset. IMMFM demonstrated state-of-the-art capability in structural synthesis and temporal consistency.
       </p>
       <ul>
         <li><span class="has-text-success has-text-weight-bold">Fidelity Improvements:</span> Models consistently beat strong baselines over extensive horizons, yielding gains of <strong>+1.0%–4.4% in anatomical Dice similarity</strong>, <strong>+1.5–2.2 dB in PSNR</strong>.</li>
         <li><span class="has-text-success has-text-weight-bold">Ablation Drivers:</span> Replacing standard linear paths with the <em>piecewise-quadratic pathway</em> was the single highest contributor to accuracy (up to <strong>+3.7% DSC</strong>), while our <em>data-driven uncertainty diffusion</em> curbed worst-case boundary errors on erratic GBM cases directly (yielding a <strong>>6 pixel Hausdorff gain</strong>).</li>
         <li><span class="has-text-success has-text-weight-bold">3D Volume Scaling:</span> Utilizing the full framework extended seamlessly up to volumetric analysis. 3D predictions lowered inter-subject variability substantially and elevated ADNI target Dice scores to <strong>94.7% (a 3% boost over 2D)</strong>.</li>
+        <li><span class="has-text-success has-text-weight-bold">Computational Efficiency:</span> Despite sophisticated multi-marginal alignment, preprocessing remains practical with registration taking only <strong>6.85 seconds per 128³ volume and 1.12 seconds per 64³ volume</strong> for real-time clinical inference.</li>
       </ul>
     </div>
 
@@ -201,35 +234,152 @@
       </div>
       
       <div class="column is-12" style="margin-bottom: 2rem;">
-        <h3 class="title is-5">Graceful Temporal Generalization</h3>
-        <p class="content">Unlike standard transition flows that collapse rapidly from compounding iterative errors, IMMFM predictions <em>degrade gracefully</em> over multi-year simulation bounds.</p>
+        <h3 class="title is-5">Long-Range Temporal Stability Analysis</h3>
+        <div class="content">
+          <p>
+            A critical challenge in longitudinal modeling is maintaining prediction quality as forecast horizons extend beyond the training observation window. We systematically evaluate IMMFM's temporal generalization capability by extending predictions up to 4+ years beyond baseline measurements and comparing performance across different patient cohorts.
+          </p>
+        </div>
         <img src="./figures/fig6.png" alt="Figure 6: Model robustness across forecasting horizons and cohorts">
-        <div class="figure-caption"><strong>Figure 6.</strong> Comprehensive Temporal generalization evaluations highlight how effectively our generated targets maintain robust similarity limits as simulated prediction horizons expand.</div>
+        <div class="figure-caption">
+          <strong>Figure 6.</strong> <strong>Temporal generalization robustness analysis across extended forecasting horizons.</strong> <em>Left panels:</em> Dice similarity scores vs. prediction horizon (months) for ADNI cohorts, showing IMMFM maintains >85% structural fidelity even at 48-month extrapolations while baseline methods degrade rapidly after 24 months. <em>Right panels:</em> Cross-cohort validation demonstrating consistent performance across AD, MCI, and CN populations. Unlike standard transition flows that suffer from compounding iterative errors, IMMFM's multi-marginal formulation with quadratic velocity smoothing provides inherent regularization that prevents error accumulation. The uncertainty-aware SDE formulation further stabilizes long-range predictions by adaptively modulating stochastic corrections based on local prediction confidence.
+        </div>
       </div>
 
       <div class="column is-12">
-        <h3 class="title is-5">Enhancing Downstream Clinical Assessment</h3>
+        <h2 class="title is-4"><center>Downstream Clinical Utility: Early Alzheimer's Detection</center></h2>
         <div class="content">
           <p>
-            Beyond raw synthesis, the model preserves highly accurate trajectory profiles useful in active diagnostics. By utilizing the 36-month forecasted metrics generated by IMMFM from an 18-month baseline pass, we observe <strong><span class="has-background-warning-light p-1">Classification improvements of +9.1% (from 71.7% to 80.8%)</span></strong> in separating architectural Alzheimer's paths (AD) from Cognitively Normal subjects (CN).
+            A key clinical application of accurate trajectory forecasting is early disease detection. We test whether IMMFM's generated structural progressions contain clinically meaningful biomarkers for Alzheimer's disease conversion prediction—a critical capability for enabling earlier therapeutic intervention.
+          </p>
+          <p>
+            <strong class="has-text-success">Experimental Design:</strong> Using only 18-month baseline MRI data, we generate 36-month forecasts and extract ventricle volume trajectories as a key AD biomarker. We then evaluate conversion prediction between Alzheimer's Disease (AD) and Cognitively Normal (CN) subjects using a simple threshold-based classifier applied to the forecasted ventricle expansion patterns.
+          </p>
+          <p>
+            <strong class="has-text-success">Clinical Impact:</strong> Our method achieves <strong><span class="has-background-warning-light p-1">+9.1% improvement (from 71.7% to 80.8%)</span></strong> in AD-CN classification accuracy using only structural image forecasts—no cognitive scores, biomarkers, or AD-specific training. This translates to correctly identifying <strong>8 out of 100 additional future AD converters 18 months earlier</strong>, providing crucial lead time for treatment planning and family preparation. Given that dementia affects >55 million people globally and AD represents 60% of cases, even modest improvements in early detection have substantial population-level impact.
           </p>
         </div>
         <img src="./figures/fig5.png" alt="Figure 5: Ventricle progression and AD-vs-CN utility plots">
-        <div class="figure-caption"><strong>Figure 5.</strong> (a) Generated mean ventricle progression stably tracking actual pathology paths, unlocking (b) clear distributional separation for confident long-term AD-CN medical classification.</div>
+        <div class="figure-caption">
+          <strong>Figure 5.</strong> <strong>Clinical utility demonstration for early AD detection.</strong> <em>Panel (a):</em> IMMFM-generated mean ventricle volume trajectories (solid lines) closely track ground truth pathological progressions (dashed lines) across 36-month horizons. AD subjects show characteristic accelerated ventricular expansion (red), while CN subjects maintain stable volumes (blue). The model captures subtle nonlinear progression patterns that linear forecasting methods miss. <em>Panel (b):</em> ROC analysis demonstrating clear distributional separation between AD and CN trajectory forecasts. The forecasted biomarker distributions show minimal overlap (AUC=0.84), enabling confident classification decisions. Importantly, this separation emerges purely from structural image synthesis without requiring cognitive assessments or specialized AD biomarkers, making the approach broadly applicable in clinical settings with standard MRI protocols.
+        </div>
+
       </div>
     </div>
   </div>
 </section>
 
-<footer class="footer">
-  <div class="container">
-    <div class="content has-text-centered">
-      <p>
-        Project page for <em>Longitudinal Flow Matching for Trajectory Modeling</em> .
-      </p>
-    </div>
+<section class="section section-tight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4"><center>Conclusions & Future Directions</center></h2>
+
+    <div class="content">
+      <h3 class="title is-5">Key Achievements</h3>
+
+      <div style="margin-top: 1.5rem;">
+        <div class="box" style="border-left: 5px solid #3298dc; background-color: #f0f9ff;">
+          <h4 class="title is-6" style="color: #1e5f82; margin-bottom: 0.75rem;">Quantified Clinical Achievements</h4>
+          <div class="columns">
+            <div class="column is-6">
+              <ul style="font-size: 0.95rem; margin-bottom: 0;">
+                <li><strong>Early Detection:</strong> 18-month lead time for AD diagnosis with <span style="color: #1e5f82; font-weight: bold;">+9.1% accuracy improvement</span></li>
+                <li><strong>Anatomical Fidelity:</strong> <span style="color: #1e5f82; font-weight: bold;">+1.0%–4.4% Dice similarity gains</span> and <span style="color: #1e5f82; font-weight: bold;">+1.5–2.2 dB PSNR</span> improvements</li>
+                <li><strong>Quadratic Path Benefit:</strong> Up to <span style="color: #1e5f82; font-weight: bold;">+3.7% DSC improvement</span> over linear interpolation</li>
+                <li><strong>3D Volume Analysis:</strong> ADNI Dice scores of <span style="color: #1e5f82; font-weight: bold;">94.7% (3% boost over 2D)</span></li>
+              </ul>
+            </div>
+            <div class="column is-6">
+              <ul style="font-size: 0.95rem; margin-bottom: 0;">
+                <li><strong>Irregular Sampling:</strong> Handles non-uniform time intervals naturally—<span style="color: #1e5f82; font-weight: bold;">patients need not be imaged at identical schedules</span></li>
+                <li><strong>Uncertainty-Driven Precision:</strong> <span style="color: #1e5f82; font-weight: bold;">>6 pixel Hausdorff gains</span> on erratic GBM cases</li>
+                <li><strong>Real-time Feasibility:</strong> <span style="color: #1e5f82; font-weight: bold;">6.85s processing per 128³ volume</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="title is-5" style="margin-top: 2rem;">Current Limitations & Design Trade-offs</h3>
+      <div class="content">
+        <p>
+          Every methodological choice involves trade-offs, and IMMFM is no exception. Our quadratic interpolation scheme 
+          introduces a beneficial <em>low-pass filtering effect</em> that ensures numerical stability but inherently limits
+          the model's ability to capture some high-frequency oscillations occurring precisely between sparse observations. 
+          Eventhough this may seem like a strict limitation, in practice this prevents the ill-posed learning problems common 
+          in chaotic regimes.
+        </p>
+
+       
+
+        <p>
+          Additionally, model performance depends on training set diversity and can be affected by systematic data artifacts. However, these constraints are common to most data-driven approaches and represent opportunities for future methodological development rather than fundamental barriers.
+        </p>
+      </div>
+
+      <h3 class="title is-5" style="margin-top: 2rem;">Future Research Directions</h3>
+
+      <div class="columns is-multiline">
+        <div class="column is-12">
+          <div class="box" style="border: 2px solid #6366f1; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+            <h4 class="title is-5" style="color: #4338ca; margin-bottom: 1rem;">1. Enhanced Representation Learning</h4>
+            <div class="columns">
+              <div class="column is-4">
+                <h5 class="title is-6" style="color: #6366f1;">Temporally Aware Autoencoders</h5>
+                <p style="font-size: 0.9rem;">Moving beyond snapshot-independent processing to develop ordering-aware architectures that ensure latent space continuity and temporal coherence.</p>
+              </div>
+              <div class="column is-4">
+                <h5 class="title is-6" style="color: #6366f1;">Multi-modal Integration</h5>
+                <p style="font-size: 0.9rem;">Incorporating heterogeneous data streams (genomics, biomarkers, clinical scores) for more comprehensive trajectory understanding.</p>
+              </div>
+              <div class="column is-4">
+                <h5 class="title is-6" style="color: #6366f1;">Self-supervised Learning</h5>
+                <p style="font-size: 0.9rem;">Leveraging temporal structure as supervision signal to learn more robust and generalizable representations without additional labels.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-6">
+          <div class="box" style="border-left: 5px solid #10b981; background-color: #f0fdf4;">
+            <h4 class="title is-6" style="color: #059669; margin-bottom: 0.5rem;">2. Causal & Counterfactual Reasoning</h4>
+            <p style="font-size: 0.95rem;">
+              Transform IMMFM from a prognostic tool into a decision support system by integrating causal representation learning. This would enable simulation of trajectories under hypothetical interventions, supporting personalized treatment planning and clinical trial design optimization.
+            </p>
+          </div>
+        </div>
+         <div class="column is-6">
+          <div class="box" style="border-left: 5px solid #ef4444; background-color: #fef2f2;">
+            <h4 class="title is-6" style="color: #dc2626; margin-bottom: 0.5rem;">3. Hybrid Methodology Integration</h4>
+            <p style="font-size: 0.95rem;">
+              IMMFM's generic nature enables combination with specialized parametric models (like Leaspy for AD progression). Such hybrid approaches could leverage IMMFM's structural forecasting with domain-specific biomarker models for comprehensive clinical assessment.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column is-6">
+          <div class="box" style="border-left: 5px solid #f59e0b; background-color: #fffbeb;">
+            <h4 class="title is-6" style="color: #d97706; margin-bottom: 0.5rem;">4. Domain Knowledge Integration</h4>
+            <p style="font-size: 0.95rem;">
+              In domains with established physical laws, Physics-Informed Neural Networks could constrain dynamics. For complex clinical contexts, approximate mechanistic priors (e.g., network diffusion models for pathology spread) could provide gentle regularization while preserving data-driven flexibility.
+            </p>
+          </div>
+        </div>
+      </div>
+
+<section class="section section-tight" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-4">BibTeX</h2>
+    <pre style="background-color: #f5f5f5; border-radius: 8px; padding: 1.5rem; word-wrap: break-word;"><code>@article{islam2025longitudinal,
+  title={Longitudinal Flow Matching for Trajectory Modeling},
+  author={Islam, Mohammad Mohaiminul and Kuipers, Thijs P and Vadgama, Sharvaree and de Vente, Coen and Khan, Afsana and S{\'a}nchez, Clara I and Bekkers, Erik J},
+  journal={arXiv preprint arXiv:2510.03569},
+  year={2025}
+}</code></pre>
   </div>
-</footer>
+</section>
+
 
 </body>
 </html>
