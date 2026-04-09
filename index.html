@@ -17,6 +17,8 @@
       --accent: #1e3a8a;
       --maxw: 980px;
       --radius: 16px;
+      --pdf-max-height: 1050px;
+      --pdf-hero-max-height: 1220px;
     }
 
     * { box-sizing: border-box; }
@@ -133,7 +135,7 @@
     }
 
     .media-block object {
-      height: min(78vw, 1050px);
+      height: min(78vw, var(--pdf-max-height));
       border: 0;
     }
 
@@ -165,10 +167,15 @@
 
     .figure-hero object {
       width: 100%;
-      height: min(86vw, 1220px);
+      height: min(86vw, var(--pdf-hero-max-height));
       display: block;
       border: 0;
       background: #fff;
+    }
+
+    .fallback-text {
+      padding: 1rem;
+      margin: 0;
     }
 
     .figure-hero .media-caption {
@@ -205,7 +212,7 @@
       </p>
       <div class="quick-links">
         <a href="paper/Longitudinal_Flow_Matching.pdf">Paper (PDF)</a>
-        <a href="#figure-1">Figure 1</a>
+        <a href="#figure1">Figure 1</a>
         <a href="#journey">Method Journey</a>
         <a href="#videos">Simulation Videos</a>
         <a href="#results">Results</a>
@@ -224,14 +231,14 @@
       </div>
     </section>
 
-    <section id="figure-1">
+    <section id="figure1">
       <h2>Figure 1 · The central idea (full-width highlight)</h2>
       <p>
         This is the key figure of the project. It introduces the problem setting and how IMMFM connects sparse observations, interpolation, and stochastic trajectory modeling in one coherent framework.
       </p>
       <article class="figure-hero">
         <object data="figures/fig1.pdf#view=FitH" type="application/pdf" aria-label="Full IMMFM overview pipeline from sparse observations to interpolation path, drift-diffusion learning, and trajectory forecasting outcomes.">
-          <p style="padding:1rem; margin:0;">Figure 1 preview unavailable. <a href="figures/fig1.pdf">Open Figure 1 PDF</a>.</p>
+          <p class="fallback-text">Figure 1 overview preview unavailable. <a href="figures/fig1.pdf">Open Figure 1 PDF</a>.</p>
         </object>
         <div class="media-caption">
           <strong>Figure 1 · Problem and model overview</strong>
@@ -300,7 +307,7 @@
 
       <article class="media-block">
         <object data="figures/fig2.pdf#view=FitH" type="application/pdf" aria-label="Comparison of synthetic trajectory recovery, including S-shaped and sigma-shaped dynamics, where IMMFM tracks curvature and crossing structures more accurately.">
-          <p style="padding:1rem; margin:0;">Figure 2 preview unavailable. <a href="figures/fig2.pdf">Open Figure 2 PDF</a>.</p>
+          <p class="fallback-text">Figure 2 trajectory recovery preview unavailable. <a href="figures/fig2.pdf">Open Figure 2 PDF</a>.</p>
         </object>
         <div class="media-caption">
           <strong>Figure 2 · Synthetic trajectory recovery</strong>
@@ -326,7 +333,7 @@
 
       <article class="media-block">
         <object data="figures/fig5.pdf#view=FitH" type="application/pdf" aria-label="Summary of disease progression trends and downstream clinical utility, including biomarker trajectory behavior and classification improvements over forecasting horizon.">
-          <p style="padding:1rem; margin:0;">Figure 5 preview unavailable. <a href="figures/fig5.pdf">Open Figure 5 PDF</a>.</p>
+          <p class="fallback-text">Figure 5 disease progression preview unavailable. <a href="figures/fig5.pdf">Open Figure 5 PDF</a>.</p>
         </object>
         <div class="media-caption">
           <strong>Figure 5 · Disease progression and downstream utility</strong>
