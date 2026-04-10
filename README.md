@@ -1,3 +1,3 @@
 # CODE WILL BE AVAILABLE SOON
-# longitudinal-flow-matching
-Interpolative Multi-marginal Flow Matching for Trajectory Learning
+
+In the meantime, check out the project page: https://niazoys.github.io/longitudinal-flow-matching/
