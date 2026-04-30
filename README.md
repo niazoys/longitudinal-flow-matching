@@ -149,11 +149,11 @@ Set `dataset.dataset_path` in the relevant config to your local data directory.
 
 ## Acknowledgements
 
-This codebase builds upon the following repositories:
+We thank the author of the following repositories:
 
-- [MMFM](https://github.com/Genentech/MMFM) — Multi-Marginal Flow Matching (Genentech)
-- [conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) — Conditional Flow Matching (Tong et al.)
-- [ImageFlowNet](https://github.com/KrishnaswamyLab/ImageFlowNet) — Image-level flow matching for longitudinal imaging (Krishnaswamy Lab)
+- [MMFM](https://github.com/Genentech/MMFM) — Multi-Marginal Flow Matching 
+- [conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) — Conditional Flow Matching 
+- [ImageFlowNet](https://github.com/KrishnaswamyLab/ImageFlowNet) — Image-level flow matching for longitudinal imaging 
 
 Data used in preparation of this article were obtained from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](https://adni.loni.usc.edu/).
 
