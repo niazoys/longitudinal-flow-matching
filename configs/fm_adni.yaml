@@ -1,0 +1,105 @@
+# Flow Matching training on ADNI dataset
+# Usage:
+#   python run_fm_adni.py --config configs/experiment/train_fm_adni.yaml
+#   python run_fm_adni.py --config configs/experiment/train_fm_adni.yaml --lr 5e-5 --batch_size 8
+
+# Training configuration
+training:
+  epochs: 400
+  batch_size: 16
+  lr: 0.0001
+  weight_decay: 0.000000000001
+  warmup: 25
+  num_workers: 24
+  seed: 51
+  enable_progress_bar: true
+
+# Hardware
+hardware:
+  gpus: 1
+  use_fp16: false
+  precision: "medium"
+  use_checkpoint: false
+
+# Logging
+logging:
+  enable: true
+  project_name: "FM-ADNI"
+  log_dir: "logs"
+
+# Checkpointing
+checkpoint:
+  resume_ckpt: null
+  test_ckpt: null
+  save_results: false
+
+# Autoencoder model (frozen, used for encoding)
+model:
+  image_size: [256, 256]
+  in_channels: 1
+  num_channels: 64
+  num_res_blocks: 1
+  channel_mult: [2, 4, 4, 4, 4, 4, 4]
+  resblock_updown: true
+  attention_resolutions: "64,32,16,8,4,2,1"
+  num_heads: 8
+  num_head_channels: 16
+  num_heads_upsample: -1
+  use_new_attention_order: true
+  use_scale_shift_norm: true
+  dropout: 0.0
+  learn_sigma: false
+  num_classes: null
+  use_skip_connection: false
+  use_time_embed: false
+
+# Flow Matching model
+flow_matching:
+  velocity_net: "vrf"
+  dim: 4096
+  w: 4096
+  depth: 7
+  memory: 1
+
+  # Loss configuration
+  loss_fn: "mse"
+  combined_loss: false
+  clip: null
+
+  # Flow matching configuration
+  implementation: "SDE"
+  interpolation: "exact"
+  sigma_scheduler: "adaptive4-1.0-0.000001"
+  s_diffusion: 1.0
+  sde_noise: 0.1
+  learned_time_scaling: true
+  deriv_mix_coeff: 0.2
+
+  # Data parametrization
+  data_parametrization: false
+  max_time: null
+  train_sampling: "contiguous"
+
+  # Conditioning
+  class_conditional: false
+  demographic_cond: true
+  treatment_cond: 0
+  time_prediction: false
+
+  # Uncertainty estimation
+  noise_prediction: true
+  uncertainty_method: "direct"
+
+# Dataset configuration
+dataset:
+  name: "adni"
+  dataset_path: "/ivi/zfs/s0/original_homes/mislam/ImageFlowNet/data/ADNI"
+  image_folder: "ADNI_images_256x256"
+  max_slice_per_patient: 200
+  use_only_pathological_case: false
+  splits_file: "assets/splits_adni.json"
+  view: "axial"
+
+# Segmentation model
+segmentor:
+  ckpt: "/projects/0/prjs1289/ImageFlowNet/checkpoints/adni/adni_segmentor_best_dice.pth"

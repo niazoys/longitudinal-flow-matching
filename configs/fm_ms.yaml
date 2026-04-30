@@ -1,0 +1,103 @@
+# Flow Matching training on Brain MS dataset
+# Usage:
+#   python run_fm_ms.py --config configs/experiment/train_fm_ms.yaml
+#   python run_fm_ms.py --config configs/experiment/train_fm_ms.yaml --lr 5e-5
+
+# Training configuration
+training:
+  epochs: 500
+  batch_size: 16
+  lr: 0.0001
+  weight_decay: 0.000000000001
+  warmup: 25
+  num_workers: 24
+  seed: 41
+  enable_progress_bar: true
+
+# Hardware
+hardware:
+  gpus: 1
+  use_fp16: false
+  precision: "medium"
+  use_checkpoint: false
+
+# Logging
+logging:
+  enable: true
+  project_name: "FM-MS"
+  log_dir: "logs"
+
+# Checkpointing
+checkpoint:
+  resume_ckpt: null
+  test_ckpt: null
+  save_results: false
+
+# Autoencoder model (frozen, used for encoding)
+model:
+  image_size: [256, 256]
+  in_channels: 1
+  num_channels: 64
+  num_res_blocks: 1
+  channel_mult: [2, 4, 4, 4, 4, 4, 4]
+  resblock_updown: true
+  attention_resolutions: "64,32,16,8,4,2,1"
+  num_heads: 8
+  num_head_channels: 16
+  num_heads_upsample: -1
+  use_new_attention_order: true
+  use_scale_shift_norm: true
+  dropout: 0.0
+  learn_sigma: false
+  num_classes: null
+  use_skip_connection: false
+  use_time_embed: false
+
+# Flow Matching model
+flow_matching:
+  velocity_net: "vrf"
+  dim: 4096
+  w: 4096
+  depth: 7
+  memory: 1
+
+  # Loss configuration
+  loss_fn: "mse"
+  combined_loss: false
+  clip: null
+
+  # Flow matching configuration
+  implementation: "SDE"
+  interpolation: "exact"
+  s_diffusion: 2.0
+  sigma_scheduler: "adaptive4-2.0-0.005"
+  sde_noise: 0.1
+  learned_time_scaling: true
+  deriv_mix_coeff: 0.2
+
+  # Data parametrization
+  data_parametrization: false
+  max_time: null
+  train_sampling: "contiguous"
+
+  # Conditioning
+  class_conditional: false
+  demographic_cond: true
+  treatment_cond: 0
+  time_prediction: false
+
+  # Uncertainty estimation
+  noise_prediction: true
+  uncertainty_method: "direct"
+
+# Dataset configuration
+dataset:
+  name: "brain_ms"
+  dataset_path: "/ivi/zfs/s0/original_homes/mislam/ImageFlowNet/data/ms_data"
+  image_folder: "ms_images_256x256"
+  use_only_pathological_case: true
+  view: "axial"
+
+# Segmentation model
+segmentor:
+  ckpt: "/projects/0/prjs1289/ImageFlowNet/checkpoints/ms/checkpoint.pty"

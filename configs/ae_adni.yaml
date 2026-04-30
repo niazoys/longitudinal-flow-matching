@@ -1,0 +1,87 @@
+# Complete training configuration for Autoencoder on ADNI dataset
+# This combines: base training + autoencoder model + ADNI dataset
+
+# Training configuration
+training:
+  epochs: 100
+  batch_size: 8
+  lr: 0.0005
+  weight_decay: 0.000000000001
+  warmup_epochs: 25
+  num_workers: 32
+  seed: 41
+  enable_progress_bar: true
+
+# Hardware
+hardware:
+  gpus: 1
+  use_fp16: false
+  precision: "medium"
+  use_checkpoint: false
+
+# Logging
+logging:
+  enable: true
+  project_name: "AE-ADNI"
+  exp_name: "baseline_unet"
+  log_dir: "logs"
+  save_n_epoch: 25
+
+# Checkpointing
+checkpoint:
+  save_dir: "checkpoints"
+  resume_ckpt: null
+  test_ckpt: null
+  save_top_k: 3
+  monitor: "validation_loss"
+  mode: "min"
+
+# Data
+data:
+  train_val_test_ratio: "8.0:0.5:1.5"
+  max_training_samples: 1000000
+  normalize_zero_to_one: true
+  train_augm: false
+
+# Model architecture
+model:
+  name: "unet_autoencoder"
+  image_size: [256, 256]
+  in_channels: 1
+  num_channels: 64
+  num_res_blocks: 1
+  channel_mult: [2, 4, 4, 4, 4, 4, 4]
+  resblock_updown: true
+  attention_resolutions: "64,32,16,8,4,2,1"
+  num_heads: 8
+  num_head_channels: 16
+  num_heads_upsample: -1
+  use_new_attention_order: true
+  use_scale_shift_norm: true
+  dropout: 0.0
+  learn_sigma: false
+  num_classes: null
+  use_skip_connection: false
+  use_time_embed: false
+  use_disentangle: false
+  make_vae: false
+
+# Loss configuration
+loss:
+  w_mse: 1.0
+  w_ssim: 0.5
+
+# Dataset configuration
+dataset:
+  name: "adni"
+  dataset_path: "/ivi/zfs/s0/original_homes/mislam/ImageFlowNet/data/ADNI"
+  image_folder: "ADNI_images_256x256"
+  view: "axial"
+  max_slice_per_patient: 200
+  use_only_pathological_case: false
+  splits_file: "assets/splits_adni.json"
+  min_timepoints: 2
+  max_timepoints: 10
+  time_unit: "years"
+  num_classes: 2
+  class_names: ["CN", "AD"]
