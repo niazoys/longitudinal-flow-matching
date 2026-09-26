@@ -127,15 +127,6 @@ ADNI train/validation/test splits are cached at `assets/splits_adni.json`. If an
 
 Set `dataset.dataset_path` in the relevant config to your local data directory.
 
-## Pretrained Models
-
-| Model | Dataset | Link |
-|-------|---------|------|
-| Autoencoder | ADNI | [Download](https://drive.google.com/XXXX) |
-| Autoencoder | Brain GBM | [Download](https://drive.google.com/XXXX) |
-| IMMFM | ADNI | [Download](https://drive.google.com/XXXX) |
-| IMMFM | Brain GBM | [Download](https://drive.google.com/XXXX) |
-
 ## Citation
 
 ```bibtex
